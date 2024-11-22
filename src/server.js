@@ -2,6 +2,10 @@ const WebSocket = require("ws");
 
 const logger = require("./utils/logger");
 
+const Config = require("./config");
+
+const config = new Config();
+
 class Server {
   static instance;
 
@@ -13,21 +17,31 @@ class Server {
     this.urls = urls;
     this.ws = null;
 
+    this.config = config.getConfig();
+
+    this.wsConfig = {
+      type    : "start",
+      service : this.config.service,
+      key     : "",
+    };
+
     this.connect();
 
     Server.instance = this;
   }
 
   connect() {
-    const url = this.urls[Math.floor(Math.random() * this.urls.length)];
-    this.ws = new WebSocket(`wss://${url}/websocket`);
+    this.ws = null;
+    const url = `wss://${this.urls[Math.floor(Math.random() * this.urls.length)]}/websocket`;
+    this.ws = new WebSocket(url);
+    logger.info("websocket connecting to -> ", url);
     this.ws_event();
   }
 
   ws_event() {
     this.ws.onclose = () => {
       this.ws = null;
-      logger.info("WebSocket connection closed");
+      logger.info("WebSocket close");
     };
 
     this.ws.onerror = (error) => {
@@ -35,12 +49,29 @@ class Server {
     };
 
     this.ws.onopen = () => {
-      logger.info("WebSocket connection established");
+      logger.info("WebSocket open");
+
+      this.send(this.wsConfig);
     };
 
     this.ws.onmessage = (evt) => {
-      logger.debug("Received message:", evt.data);
+      const json = JSON.parse(evt.data);
+
+      switch (json.type) {
+        case "verify":{
+          this.send(this.wsConfig);
+          break;
+        }
+        default:{
+          logger.info("Received message:", json);
+
+        }
+      }
     };
+  }
+
+  send(data) {
+    if (this.ws) this.ws.send(JSON.stringify(data));
   }
 }
 
