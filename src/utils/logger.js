@@ -8,9 +8,7 @@ function createCustomLogger(BaseLogger) {
       instance     : globalInstance,
     };
 
-  const LoggerClass = BaseLogger;
-
-  class CustomLogger extends LoggerClass {
+  class CustomLogger extends BaseLogger {
     constructor(prefix = "") {
       super();
 
