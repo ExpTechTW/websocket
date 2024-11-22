@@ -8,7 +8,8 @@
     "whes1015"
   ],
   "dependencies": {
-    "trem": ">=3.0.0"
+    "trem": ">=3.0.0",
+    "exptech": ">=1.0.0"
   },
   "resources": [
     "AGPL-3.0"
