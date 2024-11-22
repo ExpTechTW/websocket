@@ -1,0 +1,17 @@
+{
+  "name": "websocket",
+  "version": "1.0.0",
+  "description": {
+    "zh_tw": "TREM-Lite websocket Plugin"
+  },
+  "author": [
+    "whes1015"
+  ],
+  "dependencies": {
+    "trem": ">=3.0.0"
+  },
+  "resources": [
+    "AGPL-3.0"
+  ],
+  "link": "https://github.com/ExpTechTW/TREM-Example-Plugin"
+}
