@@ -8,10 +8,7 @@ function createCustomLogger(BaseLogger) {
       instance     : globalInstance,
     };
 
-  const LoggerClass = BaseLogger.Logger || BaseLogger;
-
-  if (typeof LoggerClass !== "function")
-    throw new Error("Invalid Logger class provided");
+  const LoggerClass = BaseLogger;
 
   class CustomLogger extends LoggerClass {
     constructor(prefix = "") {

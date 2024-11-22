@@ -39,13 +39,11 @@ class config {
   readDefaultYaml() {
     const raw = fs.readFileSync(this.defaultDir).toString();
     this.default_config = yaml.load(raw);
-    console.log(this.default_config);
   }
 
   readConfigYaml() {
     const raw = fs.readFileSync(this.configDir).toString();
     this.config = yaml.load(raw);
-    console.log(this.config);
   }
 
   checkConfigVersion() {
