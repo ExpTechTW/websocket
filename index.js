@@ -5,31 +5,38 @@ class Plugin {
 
   #ctx;
   #config;
+  #logger;
 
   constructor(ctx) {
     if (Plugin.instance)
       return Plugin.instance;
 
+
     this.#ctx = ctx;
     this.#config = new config(this.#ctx.info.pluginDir);
     this.config = {};
+    this.logger = null;
 
     Plugin.instance = this;
   }
 
   static getInstance() {
     if (!Plugin.instance)
-      new Plugin();
+      throw new Error("Plugin not initialized");
 
     return Plugin.instance;
   }
 
   onLoad() {
-    const { TREM, logger, MixinManager } = this.#ctx;
+    const { TREM, Logger, MixinManager } = this.#ctx;
 
     this.config = this.#config.getConfig();
 
-    // TREM.variable.play_mode = 1;
+    const { CustomLogger } = require("./src/utils/logger").createCustomLogger(Logger);
+    this.logger = new CustomLogger("websocket");
+
+    const server = require("./src/server");
+    new server(this.config.server);
   }
 }
 
