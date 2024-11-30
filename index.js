@@ -8,12 +8,10 @@ class Plugin {
   #logger;
 
   constructor(ctx) {
-    if (Plugin.instance)
-      return Plugin.instance;
-
+    if (Plugin.instance) return Plugin.instance;
 
     this.#ctx = ctx;
-    this.#config = new config(this.#ctx.info.pluginDir);
+    this.#config = new config(this.#ctx);
     this.config = {};
     this.logger = null;
 
@@ -21,8 +19,7 @@ class Plugin {
   }
 
   static getInstance() {
-    if (!Plugin.instance)
-      throw new Error("Plugin not initialized");
+    if (!Plugin.instance) throw new Error("Plugin not initialized");
 
     return Plugin.instance;
   }
@@ -32,7 +29,8 @@ class Plugin {
 
     this.config = this.#config.getConfig();
 
-    const { CustomLogger } = require("./src/utils/logger").createCustomLogger(Logger);
+    const { CustomLogger } =
+      require("./src/utils/logger").createCustomLogger(Logger);
     this.logger = new CustomLogger("websocket");
 
     const server = require("./src/server");

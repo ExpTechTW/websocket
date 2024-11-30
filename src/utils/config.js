@@ -6,15 +6,15 @@ const path = require("path");
 class config {
   static instance = null;
 
-  constructor(pluginDir) {
-    if (config.instance)
-      return config.instance;
+  constructor(ctx) {
+    if (config.instance) return config.instance;
 
     this.default_config = {};
     this.config = {};
 
-    this.defaultDir = path.join(pluginDir, "websocket", "./resource/default.yml");
-    this.configDir = path.join(pluginDir, "websocket", "./config.yml");
+    const pluginDir = ctx.info.originalPath;
+    this.defaultDir = path.join(pluginDir, "./resource/default.yml");
+    this.configDir = path.join(pluginDir, "./config.yml");
 
     this.checkConfigExists();
     this.readDefaultYaml();
@@ -25,8 +25,7 @@ class config {
   }
 
   static getInstance() {
-    if (!config.instance)
-      new config();
+    if (!config.instance) new config();
 
     return config.instance;
   }
@@ -55,7 +54,6 @@ class config {
       if (this.config.user)
         newConfig.user = { ...newConfig.user, ...this.config.user };
 
-
       const newLines = [];
       let currentKey = "";
       const processedArrays = new Set();
@@ -75,7 +73,7 @@ class config {
           if (Array.isArray(value)) {
             if (!processedArrays.has(currentKey)) {
               newLines.push(`${currentKey}:${commentPart}`);
-              value.forEach(item => {
+              value.forEach((item) => {
                 newLines.push(`  - ${item}`);
               });
               processedArrays.add(currentKey);
@@ -83,15 +81,21 @@ class config {
           } else if (typeof value === "object" && value !== null)
             newLines.push(`${currentKey}:${commentPart}`);
           else
-            newLines.push(`${currentKey}: ${value === null ? "null" : value}${commentPart}`);
-
+            newLines.push(
+              `${currentKey}: ${value === null ? "null" : value}${commentPart}`
+            );
         } else if (indentedKeyMatch) {
           const subKey = indentedKeyMatch[1];
-          if (newConfig[currentKey] && typeof newConfig[currentKey][subKey] !== "undefined") {
+          if (
+            newConfig[currentKey] &&
+            typeof newConfig[currentKey][subKey] !== "undefined"
+          ) {
             const value = newConfig[currentKey][subKey];
             const comment = line.includes("#") ? line.split("#")[1].trim() : "";
             const commentPart = comment ? ` # ${comment}` : "";
-            newLines.push(`  ${subKey}: ${value === null ? "null" : value}${commentPart}`);
+            newLines.push(
+              `  ${subKey}: ${value === null ? "null" : value}${commentPart}`
+            );
           }
         }
       }
