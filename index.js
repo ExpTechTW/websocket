@@ -25,7 +25,7 @@ class Plugin {
   }
 
   onLoad() {
-    const { TREM, Logger, MixinManager } = this.#ctx;
+    const { Logger } = this.#ctx;
 
     this.config = this.#config.getConfig();
 
