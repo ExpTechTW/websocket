@@ -16,6 +16,7 @@ class Server {
 
     this.urls = urls;
     this.ws = null;
+    this.reconnect = true;
 
     this.config = config.getConfig();
 
@@ -31,6 +32,8 @@ class Server {
   }
 
   connect() {
+    if (!this.reconnect) return;
+    if (this.ws) this.ws.terminate();
     this.ws = null;
     const url = `wss://${this.urls[Math.floor(Math.random() * this.urls.length)]}/websocket`;
     this.ws = new WebSocket(url);
@@ -42,6 +45,8 @@ class Server {
     this.ws.onclose = () => {
       this.ws = null;
       logger.info("WebSocket close");
+
+      setTimeout(this.connect, 3000);
     };
 
     this.ws.onerror = (error) => {
@@ -62,9 +67,16 @@ class Server {
           this.send(this.wsConfig);
           break;
         }
+        case "info":{
+          if (json.data.code == 401) {
+            this.reconnect = false;
+            logger.info("WebSocket close -> 401");
+            this.ws.close();
+          }
+          break;
+        }
         default:{
           logger.info("Received message:", json);
-
         }
       }
     };
