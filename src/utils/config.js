@@ -81,9 +81,7 @@ class config {
           } else if (typeof value === "object" && value !== null)
             newLines.push(`${currentKey}:${commentPart}`);
           else
-            newLines.push(
-              `${currentKey}: ${value === null ? "null" : value}${commentPart}`
-            );
+            newLines.push(`${currentKey}: ${value === null ? "null" : value}${commentPart}`);
         } else if (indentedKeyMatch) {
           const subKey = indentedKeyMatch[1];
           if (
@@ -93,9 +91,7 @@ class config {
             const value = newConfig[currentKey][subKey];
             const comment = line.includes("#") ? line.split("#")[1].trim() : "";
             const commentPart = comment ? ` # ${comment}` : "";
-            newLines.push(
-              `  ${subKey}: ${value === null ? "null" : value}${commentPart}`
-            );
+            newLines.push(`  ${subKey}: ${value === null ? "null" : value}${commentPart}`);
           }
         }
       }
