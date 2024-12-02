@@ -2,7 +2,7 @@ const WebSocket = require("ws");
 
 const logger = require("./utils/logger");
 
-const Config = require("./utils/config");
+const Config = require("../../config/config");
 
 const config = new Config();
 
