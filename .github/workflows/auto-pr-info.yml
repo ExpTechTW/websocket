@@ -21,6 +21,7 @@ jobs:
           BASE_NAME=$(jq -r '.name' info.json)
           FILENAME="${BASE_NAME}.json"
           echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+          echo "branch_name=update-file-$(date +%s)" >> $GITHUB_OUTPUT
           cp info.json ../target.json
 
       - name: Checkout target repository
@@ -37,10 +38,15 @@ jobs:
           cd target-repo
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git checkout -b update-file
+          git checkout -b ${{ steps.get-filename.outputs.branch_name }}
           git add infos
-          git commit -m "Update ${{ steps.get-filename.outputs.filename }}"
-          git push origin update-file
+          git diff --exit-code
+          if [ $? -ne 0 ]; then
+            git commit -m "Update ${{ steps.get-filename.outputs.filename }}"
+            git push origin ${{ steps.get-filename.outputs.branch_name }}
+          else
+            echo "No changes to commit."
+          fi
 
       - name: Create Pull Request
         env:
