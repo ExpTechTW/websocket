@@ -1,0 +1,60 @@
+name: Auto PR to infos folder
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: Get filename from info.json
+        id: get-filename
+        run: |
+          cd source-repo
+          # 獲取 name 值並添加 .json 副檔名
+          BASE_NAME=$(jq -r '.name' info.json)
+          FILENAME="${BASE_NAME}.json"
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ExpTechTW/TREM-Plugins
+          token: ${{ secrets.PAT_TOKEN }}
+          path: TREM-Plugins
+
+      - name: Create infos directory and copy file
+        run: |
+          mkdir -p TREM-Plugins/infos
+          cp source-repo/${{ steps.get-filename.outputs.filename }} TREM-Plugins/infos/
+          cd TREM-Plugins
+
+      - name: Create Pull Request
+        run: |
+          cd TREM-Plugins
+          git config user.name "GitHub Action Bot"
+          git config user.email "action@github.com"
+
+          current_date=$(date +%Y%m%d_%H%M%S)
+          branch_name="update-file-${current_date}"
+          git checkout -b $branch_name
+
+          git add infos/${{ steps.get-filename.outputs.filename }}
+          git commit -m "Update infos/${{ steps.get-filename.outputs.filename }} from source repository"
+          git push origin $branch_name
+
+          gh pr create \
+            --title "Update infos/${{ steps.get-filename.outputs.filename }} $(date +%Y-%m-%d)" \
+            --body "Automated PR to update JSON file in infos directory" \
+            --repo owner/TREM-Plugins \
+            --base main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
