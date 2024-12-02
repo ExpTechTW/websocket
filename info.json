@@ -1,6 +1,6 @@
 {
   "name": "websocket",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": {
     "zh_tw": "TREM-Lite websocket Plugin"
   },
