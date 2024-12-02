@@ -54,7 +54,7 @@ jobs:
           gh pr create \
             --title "Update infos/${{ steps.get-filename.outputs.filename }} $(date +%Y-%m-%d)" \
             --body "Automated PR to update JSON file in infos directory" \
-            --repo owner/TREM-Plugins \
+            --repo ExpTechTW/TREM-Plugins \
             --base main
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
