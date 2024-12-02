@@ -8,30 +8,45 @@ on:
 jobs:
   create-pr:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-
     steps:
-      - name: Checkout current repository
+      - name: Checkout source repository
         uses: actions/checkout@v4
+        with:
+          path: source-repo
 
       - name: Get filename from info.json
         id: get-filename
         run: |
+          cd source-repo
           BASE_NAME=$(jq -r '.name' info.json)
           FILENAME="${BASE_NAME}.json"
           echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+          cat $FILENAME > ../target.json
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ExpTechTW/TREM-Plugins
+          token: ${{ secrets.PAT_TOKEN }}
+          path: target-repo
+
+      - name: Copy and commit file
+        run: |
+          mkdir -p target-repo/infos
+          mv target.json "target-repo/infos/${{ steps.get-filename.outputs.filename }}"
+          cd target-repo
+          git checkout -b update-file
+          git add infos
+          git commit -m "Update ${{ steps.get-filename.outputs.filename }}"
+          git push origin update-file
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
-          commit-message: "Update ${{ steps.get-filename.outputs.filename }}"
-          title: "Update ${{ steps.get-filename.outputs.filename }}"
-          body: "Automated PR to update JSON file in infos directory"
-          branch: "update-${{ steps.get-filename.outputs.filename }}"
-          base: main
-          delete-branch: true
-          path: infos
-          repository: ExpTechTW/TREM-Plugins
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          gh pr create \
+            --repo ExpTechTW/TREM-Plugins \
+            --base main \
+            --head update-file \
+            --title "Update ${{ steps.get-filename.outputs.filename }}" \
+            --body "Automated update from TREM-Websocket-Plugin"
