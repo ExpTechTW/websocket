@@ -52,11 +52,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          pr_url=$(gh pr create \
-            --repo ExpTechTW/TREM-Plugins \
-            --base main \
-            --head ${{ steps.get-filename.outputs.branch_name }} \
-            --title "Update ${{ steps.get-filename.outputs.filename }}" \
-            --body "Automated update from plugin repository" \
-            --label "auto-merge")
-          echo "Created PR: $pr_url"
+          REPO_OWNER="ExpTechTW"
+          REPO_NAME="TREM-Plugins"
+          HEAD_REF="${{ steps.get-filename.outputs.branch_name }}"
+          BASE_REF="main"
+
+          curl -X POST \
+              -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"title\":\"Update ${{ steps.get-filename.outputs.filename }}\",\"head\":\"$HEAD_REF\",\"base\":\"$BASE_REF\"}" \
+              https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls
