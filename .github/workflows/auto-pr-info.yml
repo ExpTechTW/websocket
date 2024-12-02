@@ -21,7 +21,7 @@ jobs:
           BASE_NAME=$(jq -r '.name' info.json)
           FILENAME="${BASE_NAME}.json"
           echo "filename=$FILENAME" >> $GITHUB_OUTPUT
-          cat $FILENAME > ../target.json
+          cp info.json ../target.json
 
       - name: Checkout target repository
         uses: actions/checkout@v4
