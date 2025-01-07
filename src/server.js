@@ -60,7 +60,7 @@ class Server {
   ws_event() {
     this.ws.onclose = () => {
       this.ws = null;
-      logger.info("WebSocket close");
+      logger.warn("WebSocket close");
 
       setTimeout(this.connect, 3000);
     };
