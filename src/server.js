@@ -94,36 +94,6 @@ class Server {
             this.send(this.wsConfig);
           }
           // logger.info("Received message:", json.data);
-          // break;
-        }
-        case "data":{
-          this.TREM.variable.play_mode = 1;
-          switch (json.data.type) {
-            case "rts":
-              this.data.rts = json.data.data;
-              break;
-            case "tsunami":
-							this.data.tsunami = json.data.data;
-							// break;
-						case "eew":
-							this.data.eew = json.data.data;
-							// break;
-						case "intensity":
-							this.data.intensity = json.data.data;
-							// break;
-						case "report":
-							this.data.report = json.data.data;
-							// break;
-						case "rtw":
-							this.data.rtw = json.data.data;
-							break;
-            case "lpgm":
-              this.data.lpgm = json.data.data;
-              // break;
-            default:
-              logger.info("Received message:", json);
-          }
-          // logger.info("Received message:", json.data);
           break;
         }
         case "data":{
@@ -158,9 +128,6 @@ class Server {
         case "ntp":{
           this.ws_time = json.time;
           break;
-        }
-        case "ntp":{
-          this.ws_time = json.time;
         }
         default:{
           logger.info("Received message:", json);
