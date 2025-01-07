@@ -13,6 +13,7 @@ class Server {
     this.urls = urls;
     this.ws = null;
     this.reconnect = true;
+    this.info_get = false;
 
     this.config = config;
     this.exptech_config = exptech_config;
@@ -90,16 +91,20 @@ class Server {
             this.ws.close();
           } else if (json.data.code == 200) {
             this.ws_time = Date.now();
+            if (!this.info_get) {
+              this.info_get = true;
+              logger.info("info:", json.data);
+            }
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
           }
-          // logger.info("Received message:", json.data);
           break;
         }
         case "data":{
           this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
+              this.ws_time = Date.now();
               this.data.rts = json.data.data;
               break;
             case "tsunami":
@@ -121,16 +126,16 @@ class Server {
               this.data.lpgm = json.data.data;
               // break;
             default:
-              logger.info("Received message:", json);
+              logger.info("data:", json.data);
           }
           break;
         }
         case "ntp":{
-          this.ws_time = json.time;
+          this.ws_time = Date.now();
           break;
         }
         default:{
-          logger.info("Received message:", json);
+          logger.info("json:", json);
         }
       }
     };
@@ -182,7 +187,7 @@ class Server {
     }
   }
 
-  processEEWData(newData = []) {
+  processEEWData(data = {}) {
     const currentTime = this.now();
     const EXPIRY_TIME = 240 * 1000;
     const STATUS_3_TIMEOUT = 30 * 1000;
@@ -209,47 +214,45 @@ class Server {
       && !(item.status === 3 && currentTime - item.status3Time > STATUS_3_TIMEOUT),
     );
 
-    newData.forEach((data) => {
-      if (!data.eq?.time || currentTime - data.eq.time > EXPIRY_TIME || data.EewEnd) {
+    if (!data.eq?.time || currentTime - data.eq.time > EXPIRY_TIME || data.EewEnd) {
+      return;
+    }
+
+    const existingIndex = this.TREM.variable.data.eew.findIndex((item) => item.id == data.id);
+    const eventData = {
+      info: { type: this.TREM.variable.play_mode },
+      data,
+    };
+
+    if (existingIndex == -1) {
+      if (!this.TREM.variable.cache.eew_last[data.id]) {
+        if (this.TREM.constant.EEW_AUTHOR.includes(data.author)) {
+          this.TREM.variable.cache.eew_last[data.id] = {
+            last_time: currentTime,
+            serial: 1,
+          };
+          this.TREM.variable.data.eew.push(data);
+          this.TREM.variable.events.emit('EewRelease', eventData);
+        }
         return;
       }
+    }
 
-      const existingIndex = this.TREM.variable.data.eew.findIndex((item) => item.id == data.id);
-      const eventData = {
-        info: { type: this.TREM.variable.play_mode },
-        data,
-      };
+    if (this.TREM.variable.cache.eew_last[data.id] && this.TREM.variable.cache.eew_last[data.id].serial < data.serial) {
+      this.TREM.variable.cache.eew_last[data.id].serial = data.serial;
 
-      if (existingIndex == -1) {
-        if (!this.TREM.variable.cache.eew_last[data.id]) {
-          if (this.TREM.constant.EEW_AUTHOR.includes(data.author)) {
-            this.TREM.variable.cache.eew_last[data.id] = {
-              last_time: currentTime,
-              serial: 1,
-            };
-            this.TREM.variable.data.eew.push(data);
-            this.TREM.variable.events.emit('EewRelease', eventData);
-          }
-          return;
-        }
+      if (data.status === 3) {
+        data.status3Time = currentTime;
       }
 
-      if (this.TREM.variable.cache.eew_last[data.id] && this.TREM.variable.cache.eew_last[data.id].serial < data.serial) {
-        this.TREM.variable.cache.eew_last[data.id].serial = data.serial;
+      this.TREM.variable.events.emit('EewUpdate', eventData);
 
-        if (data.status === 3) {
-          data.status3Time = currentTime;
-        }
-
-        this.TREM.variable.events.emit('EewUpdate', eventData);
-
-        if (!this.TREM.variable.data.eew[existingIndex].status && data.status == 1) {
-          this.TREM.variable.events.emit('EewAlert', eventData);
-        }
-
-        this.TREM.variable.data.eew[existingIndex] = data;
+      if (!this.TREM.variable.data.eew[existingIndex].status && data.status == 1) {
+        this.TREM.variable.events.emit('EewAlert', eventData);
       }
-    });
+
+      this.TREM.variable.data.eew[existingIndex] = data;
+    }
 
     this.cleanupCache('eew_last');
 
@@ -259,7 +262,7 @@ class Server {
     });
   }
 
-  processIntensityData(newData = []) {
+  processIntensityData(data = {}) {
     const currentTime = this.now();
     const EXPIRY_TIME = 600 * 1000;
 
@@ -281,37 +284,35 @@ class Server {
       && !item.IntensityEnd,
     );
 
-    newData.forEach((data) => {
-      if (!data.id || currentTime - data.id > EXPIRY_TIME || data.IntensityEnd) {
+    if (!data.id || currentTime - data.id > EXPIRY_TIME || data.IntensityEnd) {
+      return;
+    }
+
+    const existingIndex = this.TREM.variable.data.intensity.findIndex((item) => item.id == data.id);
+    const eventData = {
+      info: { type: this.TREM.variable.play_mode },
+      data,
+    };
+
+    if (existingIndex == -1) {
+      if (!this.TREM.variable.cache.intensity_last[data.id]) {
+        this.TREM.variable.cache.intensity_last[data.id] = {
+          last_time: currentTime,
+          serial: 1,
+        };
+        this.TREM.variable.data.intensity.push(data);
+        this.TREM.variable.events.emit('IntensityRelease', eventData);
         return;
       }
+    }
 
-      const existingIndex = this.TREM.variable.data.intensity.findIndex((item) => item.id == data.id);
-      const eventData = {
-        info: { type: this.TREM.variable.play_mode },
-        data,
-      };
-
-      if (existingIndex == -1) {
-        if (!this.TREM.variable.cache.intensity_last[data.id]) {
-          this.TREM.variable.cache.intensity_last[data.id] = {
-            last_time: currentTime,
-            serial: 1,
-          };
-          this.TREM.variable.data.intensity.push(data);
-          this.TREM.variable.events.emit('IntensityRelease', eventData);
-          return;
-        }
+    if (this.TREM.variable.cache.intensity_last[data.id] && this.TREM.variable.cache.intensity_last[data.id].serial < data.serial) {
+      this.TREM.variable.cache.intensity_last[data.id].serial = data.serial;
+      if (this.isAreaDifferent(data.area, this.TREM.variable.data.intensity[existingIndex].area)) {
+        this.TREM.variable.events.emit('IntensityUpdate', eventData);
+        this.TREM.variable.data.intensity[existingIndex] = data;
       }
-
-      if (this.TREM.variable.cache.intensity_last[data.id] && this.TREM.variable.cache.intensity_last[data.id].serial < data.serial) {
-        this.TREM.variable.cache.intensity_last[data.id].serial = data.serial;
-        if (this.isAreaDifferent(data.area, this.TREM.variable.data.intensity[existingIndex].area)) {
-          this.TREM.variable.events.emit('IntensityUpdate', eventData);
-          this.TREM.variable.data.intensity[existingIndex] = data;
-        }
-      }
-    });
+    }
 
     this.cleanupCache('intensity_last');
 
@@ -321,7 +322,7 @@ class Server {
     });
   }
 
-  processLpgmData(newData = []) {
+  processLpgmData(data = {}) {
     const currentTime = this.now();
     const EXPIRY_TIME = 600 * 1000;
 
@@ -343,24 +344,22 @@ class Server {
       && !item.LpgmEnd,
     );
 
-    newData.forEach((data) => {
-      if (!data.id || data.LpgmEnd) {
-        return;
-      }
+    if (!data.id || data.LpgmEnd) {
+      return;
+    }
 
-      const existingIndex = this.TREM.variable.data.lpgm.findIndex((item) => item.id == data.id);
-      const eventData = {
-        info: { type: this.TREM.variable.play_mode },
-        data,
-      };
+    const existingIndex = this.TREM.variable.data.lpgm.findIndex((item) => item.id == data.id);
+    const eventData = {
+      info: { type: this.TREM.variable.play_mode },
+      data,
+    };
 
-      if (existingIndex == -1) {
-        data.id = Number(data.id);
-        data.time = this.now();
-        this.TREM.variable.data.lpgm.push(data);
-        this.TREM.variable.events.emit('LpgmRelease', eventData);
-      }
-    });
+    if (existingIndex == -1) {
+      data.id = Number(data.id);
+      data.time = this.now();
+      this.TREM.variable.data.lpgm.push(data);
+      this.TREM.variable.events.emit('LpgmRelease', eventData);
+    }
 
     this.TREM.variable.events.emit('DataLpgm', {
       info: { type: this.TREM.variable.play_mode },
