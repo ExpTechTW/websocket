@@ -23,7 +23,6 @@ class Server {
         await this.fetchData();
       }, 0);
     });
-    // this.DataManager = this.TREM.class.DataManager.getInstance();
 
     let rts = null, eew = null, intensity = null, lpgm = null, tsunami = null, report = null, rtw = null;
     this.data = { rts, eew, intensity, lpgm, tsunami, report, rtw };
@@ -217,7 +216,7 @@ class Server {
   }
 
   processEEWData(newData = []) {
-    const currentTime = now();
+    const currentTime = this.now();
     const EXPIRY_TIME = 240 * 1000;
     const STATUS_3_TIMEOUT = 30 * 1000;
 
@@ -294,7 +293,7 @@ class Server {
   }
 
   processIntensityData(newData = []) {
-    const currentTime = now();
+    const currentTime = this.now();
     const EXPIRY_TIME = 600 * 1000;
 
     this.TREM.variable.data.intensity
@@ -356,7 +355,7 @@ class Server {
   }
 
   processLpgmData(newData = []) {
-    const currentTime = now();
+    const currentTime = this.now();
     const EXPIRY_TIME = 600 * 1000;
 
     this.TREM.variable.data.lpgm
@@ -390,7 +389,7 @@ class Server {
 
       if (existingIndex == -1) {
         data.id = Number(data.id);
-        data.time = now();
+        data.time = this.now();
         this.TREM.variable.data.lpgm.push(data);
         this.TREM.variable.events.emit('LpgmRelease', eventData);
       }
@@ -403,13 +402,30 @@ class Server {
   }
 
   cleanupCache(cacheKey) {
-    const currentTime = now();
+    const currentTime = this.now();
     Object.keys(this.TREM.variable.cache[cacheKey]).forEach((id) => {
       const item = this.TREM.variable.cache[cacheKey][id];
       if (currentTime - item.last_time > 600000) {
         delete this.TREM.variable.cache[cacheKey][id];
       }
     });
+  }
+
+  now() {
+    if (this.TREM.variable.play_mode == 2 || this.TREM.variable.play_mode == 3) {
+      if (!this.TREM.variable.replay.local_time) {
+        this.TREM.variable.replay.local_time = Date.now();
+      }
+
+      return this.TREM.variable.replay.start_time + (Date.now() - this.TREM.variable.replay.local_time);
+    }
+
+    if (!this.TREM.variable.cache.time.syncedTime || !this.TREM.variable.cache.time.lastSync) {
+      return Date.now();
+    }
+
+    const offset = Date.now() - this.TREM.variable.cache.time.lastSync;
+    return this.TREM.variable.cache.time.syncedTime + offset;
   }
 }
 
