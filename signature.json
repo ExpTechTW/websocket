@@ -1,5 +1,5 @@
 {
-  "timestamp": 1736324822563,
+  "timestamp": 1736337970513,
   "version": "1.0.5",
   "fileHashes": {
     "index.js": "39e4ea3c8374a44cfd1df0a136afb5e7117ee132da1a1f90b9530d08313c319f",
@@ -21,8 +21,8 @@
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
     "resource/default.yml": "a7581ae3229374647fb801e3b98edf4eca5e65085e1ccd00817ff46dd70c13ce",
-    "src/server.js": "6123ecbca793d8bb81c355f21ee6278ad38133948be7bf8f38579df49d6b92cf",
+    "src/server.js": "5ecb911ee508653511fdee39742b416cda8ddba0e96432ad95d3dc2fdf84f65b",
     "src/utils/logger.js": "3c7867a1d32bb13bcdb8181e77ba2d06c6a8eb9028dc79091f07b7626c53c8d8"
   },
-  "signature": "KV5dIvn5RaqZoFpzfFEUmrIK6fr93a4c53KaSfZmUxQk6tTXDfKOhU1ap7dDxBoihK7Tj+CDUGVz0Zn1A7VWWqtNLgMXgKdS1cC3jVoYLa9GK8NAJ/qM3lcWa5twCTuE/fzjZLWe0JyDT4E92qnOBG9/MhCSR+DKF6T6nqIUoaS9QhHQOwNUDeu7KgzcBDcuBW8jRXcShpf++BTMHwsHwT2YfgJdTC0RPdV+HE6opXLjhZk7hif4H+YKSgzYNmybUcmq5fKkrKKx71/gFr40cboHmUR1H7PvqVw9w70PQQGn2wTRLJzwxq32Vx5sGI/ZhmcWNAfIJGhbfdYbdf8EeQ=="
+  "signature": "DxPnCAcWihfwv07hE8VTL/WzrzyXT8D8hhGL8fVgSJxPE+/E9NYnZddqJuwmAJutoWKvulsFlvlHPEPGW4bArFJph54pbl2nBXszELc/FcIrY23W0c9/5/PHbfqsfXoSuTvDiLMGwhQupXurBeKcBXVuu6yjFs1yPIbHKFUjkp2O735jbG+CP7nckOymx9hunjpKs9ZX3M7Hrdou9TyKvQ7Tre1xGcjb3iv3ImxVMnR8g/DDYIQXESsZIoAoV4+XYUCEu+tgVMv/et+kRsCDihSFDmQjHk3hAHhCRft2RzXJjyJ/vapoH8K3Jw6px93s0D8gNoAljBLxV7mK7hC3MQ=="
 }

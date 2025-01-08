@@ -105,19 +105,21 @@ class Server {
           break;
         }
         case "data":{
-          this.TREM.variable.play_mode = 1;
+          if (this.TREM.variable.play_mode === 0) this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
               this.ws_time = Date.now();
               this.data.rts = json.data.data;
-              this.TREM.variable.data.rts = this.data.rts;
-              this.TREM.variable.events.emit('DataRts', {
-                info: { type: this.TREM.variable.play_mode },
-                data: this.data.rts,
-              });
-              this.TREM.variable.cache.last_data_time = this.ws_time;
-              if (this.data.rts.int.length == 0) {
-                this.processEEWData();
+              if (this.TREM.variable.play_mode === 1) {
+                this.TREM.variable.data.rts = this.data.rts;
+                this.TREM.variable.events.emit('DataRts', {
+                  info: { type: this.TREM.variable.play_mode },
+                  data: this.data.rts,
+                });
+                this.TREM.variable.cache.last_data_time = this.ws_time;
+                if (this.data.rts.int.length == 0) {
+                  this.processEEWData();
+                }
               }
               break;
             case "tsunami":
@@ -126,12 +128,12 @@ class Server {
 						case "eew":
               logger.info("data eew:", json.data);
 							this.data.eew = json.data;
-              this.processEEWData(this.data.eew);
+              if (this.TREM.variable.play_mode === 1) this.processEEWData(this.data.eew);
 							break;
 						case "intensity":
               logger.info("data intensity:", json.data);
 							this.data.intensity = json.data;
-              this.processIntensityData(this.data.intensity);
+              if (this.TREM.variable.play_mode === 1) this.processIntensityData(this.data.intensity);
 							break;
 						case "report":
 							this.data.report = json.data;
@@ -142,7 +144,7 @@ class Server {
             case "lpgm":
               logger.info("data lpgm:", json.data);
               this.data.lpgm = json.data;
-              this.processLpgmData(this.data.lpgm);
+              if (this.TREM.variable.play_mode === 1) this.processLpgmData(this.data.lpgm);
               break;
             default:
               logger.info("data:", json.data);
