@@ -1,4 +1,4 @@
-const WebSocket = require("ws");
+const WebSocket = require("../node_modules/ws/index");
 
 const logger = require("./utils/logger");
 
@@ -19,11 +19,11 @@ class Server {
     this.exptech_config = exptech_config;
     this.get_exptech_config = this.exptech_config.getConfig();
     this.TREM = TREM;
-    this.TREM.variable.events.on('MapLoad', () => {
-      setInterval(async () => {
-        await this.fetchData();
-      }, 0);
-    });
+    // this.TREM.variable.events.on('MapLoad', () => {
+    //   setInterval(async () => {
+    //     await this.fetchData();
+    //   }, 0);
+    // });
 
     let rts = null, eew = null, intensity = null, lpgm = null, tsunami = null, report = null, rtw = null;
     this.data = { rts, eew, intensity, lpgm, tsunami, report, rtw };
@@ -94,6 +94,10 @@ class Server {
             if (!this.info_get) {
               this.info_get = true;
               logger.info("info:", json.data);
+              if (json.data.list.includes("trem.eew")) {
+                this.TREM.constant.EEW_AUTHOR.push("cwa");
+                logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
+              }
             }
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
@@ -106,25 +110,40 @@ class Server {
             case "rts":
               this.ws_time = Date.now();
               this.data.rts = json.data.data;
+              this.TREM.variable.data.rts = this.data.rts;
+              this.TREM.variable.events.emit('DataRts', {
+                info: { type: this.TREM.variable.play_mode },
+                data: this.data.rts,
+              });
+              this.TREM.variable.cache.last_data_time = this.ws_time;
+              if (this.data.rts.int.length == 0) {
+                this.processEEWData();
+              }
               break;
             case "tsunami":
-							this.data.tsunami = json.data.data;
+							this.data.tsunami = json.data;
 							// break;
 						case "eew":
-							this.data.eew = json.data.data;
-							// break;
+              logger.info("data eew:", json.data);
+							this.data.eew = json.data;
+              this.processEEWData(this.data.eew);
+							break;
 						case "intensity":
-							this.data.intensity = json.data.data;
-							// break;
+              logger.info("data intensity:", json.data);
+							this.data.intensity = json.data;
+              this.processIntensityData(this.data.intensity);
+							break;
 						case "report":
-							this.data.report = json.data.data;
+							this.data.report = json.data;
 							// break;
 						case "rtw":
-							this.data.rtw = json.data.data;
+							this.data.rtw = json.data;
 							break;
             case "lpgm":
-              this.data.lpgm = json.data.data;
-              // break;
+              logger.info("data lpgm:", json.data);
+              this.data.lpgm = json.data;
+              this.processLpgmData(this.data.lpgm);
+              break;
             default:
               logger.info("data:", json.data);
           }
