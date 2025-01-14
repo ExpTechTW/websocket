@@ -5,7 +5,8 @@ class Plugin {
 
   #ctx;
   #config;
-  #exptech_config
+  #exptech_config;
+  #server;
 
   constructor(ctx) {
     if (Plugin.instance) return Plugin.instance;
@@ -16,6 +17,7 @@ class Plugin {
     this.#exptech_config = null;
     this.exptech_config = {};
     this.logger = null;
+    this.#server = null;
 
     Plugin.instance = this;
   }
@@ -46,7 +48,7 @@ class Plugin {
     this.exptech_config = this.#exptech_config.getConfig();
 
     const server = require("./src/server");
-    new server(this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
+    this.#server = new server(this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
   }
 }
 

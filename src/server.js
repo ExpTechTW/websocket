@@ -38,12 +38,22 @@ class Server {
     this.ws_time = 0;
 
     setInterval(() => {
-      if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0)) {
+      // if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0)) {
+      //   this.connect();
+      // }
+      if (this.ws == null) {
         this.connect();
       }
     }, 3000);
 
+    setInterval(async () => {
+      await this.fetchData();
+    }, 0);
+
     // MixinManager.inject(TREM.class.DataManager, "fetchData", this.fetchData, "start");
+
+    this.requestCounter = 0;
+    this.activeRequests = [];
 
     Server.instance = this;
   }
@@ -63,10 +73,11 @@ class Server {
       this.ws = null;
       logger.warn("WebSocket close");
 
-      setTimeout(this.connect, 3000);
+      // setTimeout(this.connect, 3000);
     };
 
     this.ws.onerror = (error) => {
+      this.ws = null;
       logger.error("WebSocket error:", error);
     };
 
@@ -119,6 +130,8 @@ class Server {
                 this.TREM.variable.cache.last_data_time = this.ws_time;
                 if (this.data.rts.int.length == 0) {
                   this.processEEWData();
+                  this.processIntensityData();
+                  this.processLpgmData();
                 }
               }
               break;
@@ -166,45 +179,147 @@ class Server {
     if (this.ws) this.ws.send(JSON.stringify(data));
   }
 
+  abortAll() {
+    if (this.activeRequests.length > 0) {
+      this.activeRequests.forEach((fetcher) => fetcher.controller.abort());
+      this.activeRequests = [];
+    }
+  }
+
+  getFetchData(url, timeout = 1000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    return {
+      execute: async () => {
+        try {
+          const response = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+          clearTimeout(timeoutId);
+          return response;
+        }
+        catch (error) {
+          if (error.name === 'AbortError') {
+            logger.error(`[utils/fetch.js] -> time out | ${url}`);
+          }
+          else {
+            logger.error(`[utils/fetch.js] -> fetch error: ${url} | ${error.message}`);
+          }
+          return null;
+        }
+      },
+      controller,
+    };
+  }
+
+  async http(time) {
+    time = Math.round(time / 1000);
+    this.requestCounter++;
+    const shouldFetchLPGM = this.requestCounter % 10 === 0;
+    const shouldFetchIntensity = this.requestCounter % 5 === 0;
+
+    const url = (time)
+      ? this.TREM.constant.URL.REPLAY[Math.floor(Math.random() * this.TREM.constant.URL.REPLAY.length)]
+      : this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
+
+    const eew_req = this.getFetchData(
+      `https://${url}/api/v2/eq/eew${(time) ? `/${time}` : ''}`,
+      this.TREM.constant.HTTP_TIMEOUT.EEW,
+    );
+
+    const activeReqs = [eew_req];
+    let intensity_req, lpgm_req;
+
+    if (shouldFetchIntensity) {
+      intensity_req = this.getFetchData(
+        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/intensity${(time) ? `/${time}` : ''}`,
+        this.TREM.constant.HTTP_TIMEOUT.INTENSITY,
+      );
+      activeReqs.push(intensity_req);
+    }
+
+    if (shouldFetchLPGM) {
+      lpgm_req = this.getFetchData(
+        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/lpgm${(time) ? `/${time}` : ''}`,
+        this.TREM.constant.HTTP_TIMEOUT.LPGM,
+      );
+      activeReqs.push(lpgm_req);
+    }
+
+    this.activeRequests.push(...activeReqs);
+
+    try {
+      const responses = await Promise.all(activeReqs.map((req) => req.execute()));
+
+      let eew = null, intensity = null, lpgm = null;
+
+      if (responses[0]?.ok) {
+        eew = await responses[0].json();
+      }
+
+      if (shouldFetchIntensity && responses[1]?.ok) {
+        intensity = await responses[1].json();
+      }
+
+      if (shouldFetchLPGM && responses[responses.length - 1]?.ok) {
+        lpgm = await responses[responses.length - 1].json();
+      }
+
+      return { eew, intensity, lpgm };
+    }
+    finally {
+      this.activeRequests = this.activeRequests.filter((req) => !activeReqs.includes(req));
+    }
+  }
+
   async fetchData() {
     if (this.TREM.variable.play_mode === 1) {
       // realtime (websocket)
       const localNow_ws = Date.now();
-      if (localNow_ws - this.lastFetchTime < 100) {
+      if (localNow_ws - this.lastFetchTime < 1000) {
         return;
       }
       this.lastFetchTime = localNow_ws;
 
-      if (!this.TREM.variable.data.rts
-        || (!this.data.rts && ((localNow_ws - this.TREM.variable.cache.last_data_time) > this.TREM.constant.LAST_DATA_TIMEOUT_ERROR))
-        || this.TREM.variable.data.rts.time < (this.data.rts?.time ?? 0)) {
-        this.TREM.variable.data.rts = this.data.rts;
-        this.TREM.variable.events.emit('DataRts', {
-          info: { type: this.TREM.variable.play_mode },
-          data: this.data.rts,
-        });
-      }
+      const data = await this.http(null);
 
-      if (this.data.eew) {
-        this.processEEWData(this.data.eew);
+      // if (!this.TREM.variable.data.rts
+      //   || (!this.data.rts && ((localNow_ws - this.TREM.variable.cache.last_data_time) > this.TREM.constant.LAST_DATA_TIMEOUT_ERROR))
+      //   || this.TREM.variable.data.rts.time < (this.data.rts?.time ?? 0)) {
+      //   this.TREM.variable.data.rts = this.data.rts;
+      //   this.TREM.variable.events.emit('DataRts', {
+      //     info: { type: this.TREM.variable.play_mode },
+      //     data: this.data.rts,
+      //   });
+      // }
+
+      if (data.eew) {
+        this.processEEWData(data.eew);
       }
       else {
         this.processEEWData();
       }
 
-      if (this.data.intensity) {
-        this.processIntensityData(this.data.intensity);
+      if (data.intensity) {
+        this.processIntensityData(data.intensity);
+      }
+      else {
+        this.processIntensityData();
       }
 
-      if (this.data.lpgm) {
-        this.processLpgmData(this.data.lpgm);
+      if (data.lpgm) {
+        this.processLpgmData(data.lpgm);
+      }
+      else {
+        this.processLpgmData();
       }
 
-      if (this.data.rts) {
-        this.TREM.variable.cache.last_data_time = localNow_ws;
-      }
+      // if (this.data.rts) {
+      //   this.TREM.variable.cache.last_data_time = localNow_ws;
+      // }
 
       return null;
+    } else {
+      this.abortAll();
     }
   }
 
