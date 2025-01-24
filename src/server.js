@@ -61,6 +61,10 @@ class Server {
     Server.instance = this;
   }
 
+  get_ws_verify_list() {
+    return this.ws_verify_list;
+  }
+
   set_ws_open(ws_open) {
     // logger.info("WebSocket set_ws_open:", ws_open);
     this.ws_open = ws_open;

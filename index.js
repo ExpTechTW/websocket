@@ -58,7 +58,7 @@ class Plugin {
     if (!this.#server) {
       throw new Error("Server not initialized");
     }
-    return this.#server.ws_verify_list;
+    return this.#server.get_ws_verify_list();
   }
 
   init() {
