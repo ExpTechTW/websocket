@@ -4,6 +4,7 @@ const logger = require("./utils/logger");
 
 class Server {
   static instance;
+  ws_verify_list = [];
 
   constructor(urls, config, exptech_config, TREM, MixinManager) {
     if (Server.instance)
@@ -35,8 +36,11 @@ class Server {
       key     : this.get_exptech_config.user.token ?? "",
     };
 
-    this.connect();
+    this.ws_verify_list = Server.ws_verify_list;
     this.ws_time = 0;
+    this.activeRequests = [];
+
+    this.connect();
 
     setInterval(() => {
       if (this.ws_gg) {
@@ -51,9 +55,6 @@ class Server {
     }, 0);
 
     // MixinManager.inject(TREM.class.DataManager, "fetchData", this.fetchData, "start");
-
-    this.requestCounter = 0;
-    this.activeRequests = [];
 
     Server.instance = this;
   }
@@ -106,8 +107,16 @@ class Server {
             if (!this.info_get) {
               this.info_get = true;
               logger.info("info:", json.data);
+              this.ws_verify_list = json.data.list;
               if (json.data.list.includes("trem.eew")) {
-                this.TREM.constant.EEW_AUTHOR.push("cwa");
+                if (this.config.SHOW_BOTH_EEW) {
+                  this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'cwa');
+                  this.TREM.constant.EEW_AUTHOR.push("cwa");
+                  this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'trem');
+                  this.TREM.constant.EEW_AUTHOR.push("trem");
+                } else {
+                  this.TREM.constant.SHOW_TREM_EEW = true;
+                }
                 logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
@@ -137,6 +146,7 @@ class Server {
               }
               break;
             case "tsunami":
+              logger.info("data tsunami:", json.data);
 							this.data.tsunami = json.data;
 							// break;
 						case "eew":
@@ -150,7 +160,15 @@ class Server {
               if (this.TREM.variable.play_mode === 1) this.processIntensityData(this.data.intensity);
 							break;
 						case "report":
+              logger.info("data report:", json.data);
 							this.data.report = json.data;
+              if (this.TREM.variable.play_mode === 1) {
+                const url = this.TREM.constant.URL.API[Math.floor(Math.random() * this.TREM.constant.URL.API.length)];
+                const data = json.data;
+                if (data) {
+                  this.TREM.variable.events.emit('ReportRelease', { info: { url }, data });
+                }
+              }
 							// break;
 						case "rtw":
 							this.data.rtw = json.data;
@@ -187,6 +205,17 @@ class Server {
     }
   }
 
+  getReportInfo(url, id) {
+    const ans = getFetchData(
+      `https://${url}/api/v2/eq/report/${id}`,
+      this.TREM.constant.HTTP_TIMEOUT.REPORT,
+    );
+    if (!ans || !ans.ok) {
+      return null;
+    }
+    return ans.json();
+  }
+
   getFetchData(url, timeout = 1000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -212,60 +241,26 @@ class Server {
     };
   }
 
-  async http(time) {
-    time = Math.round(time / 1000);
-    this.requestCounter++;
-    const shouldFetchLPGM = this.requestCounter % 10 === 0;
-    const shouldFetchIntensity = this.requestCounter % 5 === 0;
-
-    const url = (time)
-      ? this.TREM.constant.URL.REPLAY[Math.floor(Math.random() * this.TREM.constant.URL.REPLAY.length)]
-      : this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
+  async http() {
+    const url = this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
 
     const eew_req = this.getFetchData(
-      `https://${url}/api/v2/eq/eew${(time) ? `/${time}` : ''}`,
+      `https://${url}/api/v2/eq/eew`,
       this.TREM.constant.HTTP_TIMEOUT.EEW,
     );
 
     const activeReqs = [eew_req];
-    let intensity_req, lpgm_req;
-
-    if (shouldFetchIntensity) {
-      intensity_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/intensity${(time) ? `/${time}` : ''}`,
-        this.TREM.constant.HTTP_TIMEOUT.INTENSITY,
-      );
-      activeReqs.push(intensity_req);
-    }
-
-    if (shouldFetchLPGM) {
-      lpgm_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/lpgm${(time) ? `/${time}` : ''}`,
-        this.TREM.constant.HTTP_TIMEOUT.LPGM,
-      );
-      activeReqs.push(lpgm_req);
-    }
-
-    this.activeRequests.push(...activeReqs);
 
     try {
       const responses = await Promise.all(activeReqs.map((req) => req.execute()));
 
-      let eew = null, intensity = null, lpgm = null;
+      let eew = null;
 
       if (responses[0]?.ok) {
         eew = await responses[0].json();
       }
 
-      if (shouldFetchIntensity && responses[1]?.ok) {
-        intensity = await responses[1].json();
-      }
-
-      if (shouldFetchLPGM && responses[responses.length - 1]?.ok) {
-        lpgm = await responses[responses.length - 1].json();
-      }
-
-      return { eew, intensity, lpgm };
+      return { eew };
     }
     finally {
       this.activeRequests = this.activeRequests.filter((req) => !activeReqs.includes(req));
@@ -281,17 +276,7 @@ class Server {
       }
       this.lastFetchTime = localNow_ws;
 
-      const data = await this.http(null);
-
-      // if (!this.TREM.variable.data.rts
-      //   || (!this.data.rts && ((localNow_ws - this.TREM.variable.cache.last_data_time) > this.TREM.constant.LAST_DATA_TIMEOUT_ERROR))
-      //   || this.TREM.variable.data.rts.time < (this.data.rts?.time ?? 0)) {
-      //   this.TREM.variable.data.rts = this.data.rts;
-      //   this.TREM.variable.events.emit('DataRts', {
-      //     info: { type: this.TREM.variable.play_mode },
-      //     data: this.data.rts,
-      //   });
-      // }
+      const data = await this.http();
 
       if (data.eew) {
         this.processEEWData(data.eew);
@@ -299,24 +284,6 @@ class Server {
       else {
         this.processEEWData();
       }
-
-      if (data.intensity) {
-        this.processIntensityData(data.intensity);
-      }
-      else {
-        this.processIntensityData();
-      }
-
-      if (data.lpgm) {
-        this.processLpgmData(data.lpgm);
-      }
-      else {
-        this.processLpgmData();
-      }
-
-      // if (this.data.rts) {
-      //   this.TREM.variable.cache.last_data_time = localNow_ws;
-      // }
 
       return null;
     } else {
