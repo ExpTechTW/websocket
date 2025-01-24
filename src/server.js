@@ -14,6 +14,7 @@ class Server {
     this.ws = null;
     this.reconnect = true;
     this.info_get = false;
+    this.ws_gg = false;
 
     this.config = config;
     this.exptech_config = exptech_config;
@@ -38,10 +39,9 @@ class Server {
     this.ws_time = 0;
 
     setInterval(() => {
-      // if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0)) {
-      //   this.connect();
-      // }
-      if (this.ws == null) {
+      if (this.ws_gg) {
+        this.connect();
+      } else if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0)) {
         this.connect();
       }
     }, 3000);
@@ -70,18 +70,19 @@ class Server {
 
   ws_event() {
     this.ws.onclose = () => {
-      this.ws = null;
+      this.ws_gg = true;
       logger.warn("WebSocket close");
 
       // setTimeout(this.connect, 3000);
     };
 
     this.ws.onerror = (error) => {
-      this.ws = null;
+      this.ws_gg = true;
       logger.error("WebSocket error:", error);
     };
 
     this.ws.onopen = () => {
+      this.ws_gg = false;
       logger.info("WebSocket open");
 
       this.send(this.wsConfig);

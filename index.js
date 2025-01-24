@@ -29,7 +29,7 @@ class Plugin {
   }
 
   onLoad() {
-    const { TREM,Logger, info, utils, MixinManager } = this.#ctx;
+    const { TREM, Logger, info, utils, MixinManager } = this.#ctx;
 
     const { CustomLogger } =
       require("./src/utils/logger").createCustomLogger(Logger);
