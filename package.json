@@ -1,9 +1,5 @@
 {
   "dependencies": {
-    "eslint": "^8.56.0",
-    "eslint-plugin-require-sort": "^1.3.0",
-    "fs-extra": "^11.2.0",
-    "js-yaml": "^4.1.0",
     "ws": "^8.18.0"
   }
 }
