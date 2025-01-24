@@ -1,8 +1,8 @@
 {
-  "timestamp": 1737746293184,
+  "timestamp": 1737746583195,
   "version": "1.0.6",
   "fileHashes": {
-    "index.js": "57f9c2b1a483e9b62f52b88cd9a98a4d20fe2ee0c56f1f55849949a7de62a233",
+    "index.js": "0193e127d2c1317331e4867a8300902e1082fa4d847f3e2f8e1a2b42e684c368",
     "info.json": "b5fd11fa759ff2e45df5cff6a861a4c1e9fd97f22af16c002333d774f6161202",
     "node_modules/ws/browser.js": "010da44addea1d88b2b732540c3f1fd0cbcb28926b96623d4c64222e0ead2d0e",
     "node_modules/ws/index.js": "70a117e957f85622a6fe2be39afb9597489965fe3fe6ebefd84adb8f0d9d114a",
@@ -21,8 +21,8 @@
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
     "resource/default.yml": "38136244b84fad33c8f38bfa96693c9fb573fa79e360525dc71e8faff1e0a0bf",
-    "src/server.js": "14f1a677e69c963d2f873e7b34418020c725f75bef06498ad3be2d25a542a612",
+    "src/server.js": "43cb4652ec99c0b34e697c0e8e76b5cf1bf31fa74c611a2dd1db2f3e73c4fa76",
     "src/utils/logger.js": "3c7867a1d32bb13bcdb8181e77ba2d06c6a8eb9028dc79091f07b7626c53c8d8"
   },
-  "signature": "OrgNi4Hk++OML4RU1kPvHMgKzf5XAYn9M8/Ojgpa2wVmTxKuPszU9L19D3F+0BkFmP6kmZ+C8sAVADMjKJTlf+Ttc1EoC1dPEbxTvzoyQUeAsem15Bp5i+EXlWjqokkTejW8p5kd2p0Qn2pzd2b6nZo0tZq8EhT95QPGEDVFKF5UPHTX9hhohsKGhswo3iNCWY+F7FMfY9K6aalSGp46MH05r+77xbPBTYf9sI9r3hA6ai59zPdCup6xRUACJ2HUCJMpJq83zp9+Nt1G9JfPJ7akY9jeCEy2LlXlMkwnncr7uc7DZZgWwxdqFzs/sfhny9Y0RZgj5EnXxL4vz5FFZQ=="
+  "signature": "LH6smfOGCVaeoBd9Cn5rtHshBdacb3aS8U+18kuS2KFNKuuuiPMRT10ecpnJ9K5NubFOrIrhQ7f3kFha/lk0br/hp1KZGLZ2aqpcg6BKwsVZUAajOcfQo4r5IdqnqlhqZPHezYGETGeFo5/D68eXX60H+/x+DViBPBIvXchWUjMsfuWysQX2sEwYuKvz6a5cUubd8TYP5BcEAGy6PamLIxXsjVuV6Ts+HFss4KdpoR22//HPO2PihZ0s3vLGsbv3HS9NREhVDjY+XkijOFhT+f9a1hdxXp4ms6ndbMOIIY2ERJVfXK//SSwzSI77ZCWpceYGVsZF3yDDXFKn4u6IDA=="
 }
