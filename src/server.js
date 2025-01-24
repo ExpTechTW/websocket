@@ -74,11 +74,18 @@ class Server {
       this.ws.close();
       this.ws_gg = false;
       this.ws = null;
-      logger.info("WebSocket close -> HTTP");
+      logger.info("WebSocket close -> chenges");
     } else {
       if (!this.reconnect) this.reconnect = true;
+      if (this.info_get) this.info_get = false;
+      this.get_exptech_config = this.exptech_config.getConfig();
+      this.wsConfig = {
+        type    : "start",
+        service : this.config.service,
+        key     : this.get_exptech_config.user.token ?? "",
+      };
       this.connect();
-      logger.info("WebSocket open -> WebSocket");
+      logger.info("WebSocket open -> chenges");
     }
   }
 
