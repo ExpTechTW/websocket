@@ -70,6 +70,7 @@ class Server {
     this.ws_open = ws_open;
 
     if (!ws_open) {
+      if (this.reconnect) this.reconnect = false;
       this.ws_time = 0;
       this.ws.close();
       this.ws_gg = false;
