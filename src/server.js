@@ -5,6 +5,7 @@ const logger = require("./utils/logger");
 class Server {
   static instance;
   ws_verify_list = [];
+  ws_open = true;
 
   constructor(urls, config, exptech_config, TREM, MixinManager) {
     if (Server.instance)
@@ -39,6 +40,7 @@ class Server {
     this.ws_verify_list = Server.ws_verify_list;
     this.ws_time = 0;
     this.activeRequests = [];
+    this.ws_open = Server.ws_open;
 
     this.connect();
 
@@ -51,12 +53,29 @@ class Server {
     }, 3000);
 
     setInterval(async () => {
-      await this.fetchData();
-    }, 0);
+      if (this.ws_open) await this.fetchData();
+    }, 1000);
 
     // MixinManager.inject(TREM.class.DataManager, "fetchData", this.fetchData, "start");
 
     Server.instance = this;
+  }
+
+  set_ws_open(ws_open) {
+    // logger.info("WebSocket set_ws_open:", ws_open);
+    this.ws_open = ws_open;
+
+    if (!ws_open) {
+      this.ws_time = 0;
+      this.ws.close();
+      this.ws_gg = false;
+      this.ws = null;
+      logger.info("WebSocket close -> HTTP");
+    } else {
+      if (!this.reconnect) this.reconnect = true;
+      this.connect();
+      logger.info("WebSocket open -> WebSocket");
+    }
   }
 
   connect() {
@@ -102,6 +121,7 @@ class Server {
             this.reconnect = false;
             logger.info("WebSocket close -> 401");
             this.ws.close();
+            this.ws = null;
           } else if (json.data.code == 200) {
             this.ws_time = Date.now();
             if (!this.info_get) {
@@ -120,13 +140,14 @@ class Server {
                 logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
+
+            if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
           }
           break;
         }
         case "data":{
-          if (this.TREM.variable.play_mode === 0) this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
               this.ws_time = Date.now();
@@ -161,10 +182,10 @@ class Server {
 							break;
 						case "report":
               logger.info("data report:", json.data);
-							this.data.report = json.data;
+							this.data.report = json.data.data;
               if (this.TREM.variable.play_mode === 1) {
                 const url = this.TREM.constant.URL.API[Math.floor(Math.random() * this.TREM.constant.URL.API.length)];
-                const data = json.data;
+                const data = json.data.data;
                 if (data) {
                   this.TREM.variable.events.emit('ReportRelease', { info: { url }, data });
                 }
