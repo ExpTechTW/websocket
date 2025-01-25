@@ -106,10 +106,6 @@ class Server {
             if (!this.info_get) {
               this.info_get = true;
               logger.info("info:", json.data);
-              if (json.data.list.includes("trem.eew")) {
-                this.TREM.constant.EEW_AUTHOR.push("cwa");
-                logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
-              }
             }
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
