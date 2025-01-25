@@ -154,6 +154,7 @@ class Server {
             }
 
             if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
+            break;
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
             break;
