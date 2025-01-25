@@ -3,7 +3,6 @@ const WebSocket = require("../node_modules/ws/index");
 class Server {
   static instance;
   ws_verify_list = [];
-  ws_open = true;
 
   constructor(logger, urls, config, exptech_config, TREM, MixinManager) {
     if (Server.instance)
@@ -32,7 +31,6 @@ class Server {
 
     this.ws_verify_list = Server.ws_verify_list;
     this.ws_time = 0;
-    this.ws_open = Server.ws_open;
 
     this.connect();
 
@@ -53,9 +51,6 @@ class Server {
   }
 
   set_ws_open(ws_open) {
-    // this.logger.info("WebSocket set_ws_open:", ws_open);
-    this.ws_open = ws_open;
-
     if (!ws_open) {
       if (this.reconnect) this.reconnect = false;
       if (this.connect_clock) {
@@ -147,6 +142,7 @@ class Server {
                 }
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
+              this.TREM.variable.play_mode = 1;
             }
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
@@ -154,7 +150,6 @@ class Server {
           break;
         }
         case "data":{
-          if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
               this.ws_time = Date.now();
