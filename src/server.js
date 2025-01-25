@@ -18,7 +18,6 @@ class Server {
 
     this.config = config;
     this.exptech_config = exptech_config;
-    this.get_exptech_config = this.exptech_config.getConfig();
     this.TREM = TREM;
     // this.TREM.variable.events.on('MapLoad', () => {
     //   setInterval(async () => {
@@ -32,7 +31,7 @@ class Server {
     this.wsConfig = {
       type    : "start",
       service : this.config.service,
-      key     : this.get_exptech_config.user.token ?? "",
+      key     : this.exptech_config.user.token ?? "",
     };
 
     this.ws_verify_list = Server.ws_verify_list;
@@ -77,11 +76,10 @@ class Server {
     } else {
       if (!this.reconnect) this.reconnect = true;
       if (this.info_get) this.info_get = false;
-      this.get_exptech_config = this.exptech_config.getConfig();
       this.wsConfig = {
         type    : "start",
         service : this.config.service,
-        key     : this.get_exptech_config.user.token ?? "",
+        key     : this.exptech_config.user.token ?? "",
       };
       this.connect();
       this.logger.info("WebSocket open -> chenges");
