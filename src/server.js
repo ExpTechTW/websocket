@@ -32,7 +32,6 @@ class Server {
 
     this.ws_verify_list = Server.ws_verify_list;
     this.ws_time = 0;
-    this.activeRequests = [];
     this.ws_open = Server.ws_open;
 
     this.connect();
@@ -226,41 +225,6 @@ class Server {
 
   send(data) {
     if (this.ws) this.ws.send(JSON.stringify(data));
-  }
-
-  getReportInfo(url, id) {
-    const ans = getFetchData(
-      `https://${url}/api/v2/eq/report/${id}`,
-      this.TREM.constant.HTTP_TIMEOUT.REPORT,
-    );
-    if (!ans || !ans.ok) {
-      return null;
-    }
-    return ans.json();
-  }
-
-  getFetchData(url, timeout = 1000) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    return {
-      execute: async () => {
-        try {
-          const response = await fetch(url, { signal: controller.signal, cache: "no-cache" });
-          clearTimeout(timeoutId);
-          return response;
-        } catch (error) {
-          if (error.name === "AbortError")
-            this.logger.error(`[utils/fetch.js] -> time out | ${url}`);
-
-          else
-            this.logger.error(`[utils/fetch.js] -> fetch error: ${url} | ${error.message}`);
-
-          return null;
-        }
-      },
-      controller,
-    };
   }
 
   processEEWData(data = {}) {
