@@ -146,6 +146,8 @@ class Server {
                   this.TREM.constant.EEW_AUTHOR.push("trem");
                 } else {
                   this.TREM.constant.SHOW_TREM_EEW = true;
+                  const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
+                  if (eewSource.includes("trem")) this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter(author => author != "cwa");
                 }
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
@@ -153,16 +155,9 @@ class Server {
 
             if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
           } else if (json.data.code == 400) {
-              this.logger.info("info:", json.data);
-
-              if (json.data.list.includes("trem.eew")) {
-                const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
-                if (eewSource.includes("trem")) this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter(author => author != "cwa");
-                this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
-              }
-            }
             this.send(this.wsConfig);
             break;
+          }
         }
         case "data":{
           switch (json.data.type) {
