@@ -48,7 +48,7 @@ class Plugin {
     this.exptech_config = this.#exptech_config.getConfig();
 
     const server = require("./src/server");
-    this.#server = new server(this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
+    this.#server = new server(this.logger, this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
 
     this.init();
     this.addClickEvent(TREM);
