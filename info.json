@@ -1,6 +1,6 @@
 {
   "name": "websocket",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": {
     "zh_tw": "TREM-Lite websocket Plugin"
   },
@@ -9,7 +9,7 @@
     "yaycat"
   ],
   "dependencies": {
-    "trem": ">=3.1.0-rc.4",
+    "trem": ">=3.1.0",
     "exptech": ">=1.0.1",
     "config": ">=1.0.3",
     "logger": ">=1.0.0"
