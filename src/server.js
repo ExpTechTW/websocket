@@ -154,11 +154,10 @@ class Server {
             }
 
             if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
-            break;
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
-            break;
           }
+          break;
         }
         case "data":{
           switch (json.data.type) {
@@ -182,7 +181,7 @@ class Server {
             case "tsunami":
               this.logger.info("data tsunami:", json.data);
 							this.data.tsunami = json.data;
-							// break;
+							break;
 						case "eew":
               this.logger.info("data eew:", json.data);
               this.data.eew = json.data;
@@ -203,7 +202,7 @@ class Server {
                   this.TREM.variable.events.emit('ReportRelease', { info: { url }, data });
                 }
               }
-							// break;
+							break;
 						case "rtw":
 							this.data.rtw = json.data;
 							break;
