@@ -32,7 +32,7 @@ class Plugin {
     const { TREM, Logger, info, utils, MixinManager } = this.#ctx;
 
     const { CustomLogger } =
-      require("./src/utils/logger").createCustomLogger(Logger);
+      require("../logger/logger").createCustomLogger(Logger);
     this.logger = new CustomLogger("websocket");
 
     const defaultDir = utils.path.join(info.pluginDir, "./websocket/resource/default.yml");
