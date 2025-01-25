@@ -64,7 +64,7 @@ class Server {
   }
 
   set_ws_open(ws_open) {
-    // logger.info("WebSocket set_ws_open:", ws_open);
+    // this.logger.info("WebSocket set_ws_open:", ws_open);
     this.ws_open = ws_open;
 
     if (!ws_open) {
@@ -73,7 +73,7 @@ class Server {
       this.ws.close();
       this.ws_gg = false;
       this.ws = null;
-      logger.info("WebSocket close -> chenges");
+      this.logger.info("WebSocket close -> chenges");
     } else {
       if (!this.reconnect) this.reconnect = true;
       if (this.info_get) this.info_get = false;
@@ -84,7 +84,7 @@ class Server {
         key     : this.get_exptech_config.user.token ?? "",
       };
       this.connect();
-      logger.info("WebSocket open -> chenges");
+      this.logger.info("WebSocket open -> chenges");
     }
   }
 
@@ -136,7 +136,7 @@ class Server {
             this.ws_time = Date.now();
             if (!this.info_get) {
               this.info_get = true;
-              logger.info("info:", json.data);
+              this.logger.info("info:", json.data);
               this.ws_verify_list = json.data.list;
               if (json.data.list.includes("trem.eew")) {
                 if (this.config.SHOW_BOTH_EEW) {
@@ -147,7 +147,7 @@ class Server {
                 } else {
                   this.TREM.constant.SHOW_TREM_EEW = true;
                 }
-                logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
+                this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
 
@@ -161,10 +161,8 @@ class Server {
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
-          }
             this.send(this.wsConfig);
-
-          break;
+            break;
         }
         case "data":{
           switch (json.data.type) {
@@ -186,7 +184,7 @@ class Server {
               }
               break;
             case "tsunami":
-              logger.info("data tsunami:", json.data);
+              this.logger.info("data tsunami:", json.data);
 							this.data.tsunami = json.data;
 							// break;
 						case "eew":
@@ -200,7 +198,7 @@ class Server {
               if (this.TREM.variable.play_mode === 1) this.processIntensityData(this.data.intensity);
 							break;
 						case "report":
-              logger.info("data report:", json.data);
+              this.logger.info("data report:", json.data);
 							this.data.report = json.data.data;
               if (this.TREM.variable.play_mode === 1) {
                 const url = this.TREM.constant.URL.API[Math.floor(Math.random() * this.TREM.constant.URL.API.length)];

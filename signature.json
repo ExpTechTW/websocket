@@ -1,11 +1,9 @@
 {
-
-  "timestamp": 1737770328843,
-  "version": "1.1.1",
+  "timestamp": 1737771533982,
+  "version": "1.1.2",
   "fileHashes": {
-    "index.js": "bd8af97199a1c3e415243e1fbd78e077d4cd804faf3ecaf88d1b0f5c8b51c785",
-    "info.json": "a73b89d39d17600fe247cdb869d35456b2d4e899febc303b83f659a28179c785",
-
+    "index.js": "bd58153875a21139c0d03cb66fb694d31496213f270c83b678d2f09a0a41168d",
+    "info.json": "9087f269129cd2ec1f57501f2077cc7abf6f73540df2594c0ab7dec6fda33bd4",
     "node_modules/ws/browser.js": "010da44addea1d88b2b732540c3f1fd0cbcb28926b96623d4c64222e0ead2d0e",
     "node_modules/ws/index.js": "70a117e957f85622a6fe2be39afb9597489965fe3fe6ebefd84adb8f0d9d114a",
     "node_modules/ws/lib/buffer-util.js": "8b0a45739132f82e25ea13163780abf547ccfe989267f3eb7abb475beec92da3",
@@ -22,9 +20,8 @@
     "node_modules/ws/lib/websocket-server.js": "5d0e592eb6e8b7628cbf6e2e6c703a3d6bda17139842b3a870ee9d67e336a77c",
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
-    "resource/default.yml": "a7581ae3229374647fb801e3b98edf4eca5e65085e1ccd00817ff46dd70c13ce",
-    "src/server.js": "71b4ca97f6ea646228e24ed93564bcae54577c489db19ea1516cfef802937e4e"
+    "resource/default.yml": "38136244b84fad33c8f38bfa96693c9fb573fa79e360525dc71e8faff1e0a0bf",
+    "src/server.js": "4c9d97a2ca94571f23a405943cda1adf4573e64b57359ced186b4e783aa3c5a6"
   },
-  "signature": "S6b1E8WNd+GPsIjkKidfYRqeBgF3CPul3UKHWXFAWjcraF1S/Ck/r3UTKUHOnYHFO81s6u152osOAKpcMvNEIUjaMrWtxabmA9nse4yZBAW/Eu5VBQS1jsuyCHfYf/+dKzMoHUDB9ogZdjtq3+ZMvHofH326XKBAFxZJNVvySIgsSPb7xs9kNx/4SP/3R3WGy0XkcC68n4eWbUyPnbMSLHZ7q9EEHzggZuapZpT9ijS+MrjMJ0OU1VtF94MCKKhUS6lfhydEMgwtcumkYKCu8uh23Yh71KQiRZGMOgT38OLcvsWxFGlBUB7i4yL6hrtF637T0inVKhR+Nct9RmzNJQ==",
-  "keyId": "official"
+  "signature": "DptQ4vr3zNmfF8hF37Wu6Wkr+QvkCemHkGJ+QNK8QbHRzvC+jfPJH6T/KAW+9tIO73Xi95tRgWDDRYrqPfqKyUbfSnyo8bk2sHbJu895aTC+vD0LSXTJbN6cCOMPjHjorAHbpzYEmRL+fTdpjpv8CzZl712sNBpgvwqWwy9WQ9c1cHzaqBlIhVVdo/1JZfkp0x+Jvtf3ipLjSHTACh8eyAJy95PRaS+S1JJGwfdLOFiNCxn7z1TvWi64GAN0ATFYSsBliyWyF0gzcPg5d2/TYXk98DwMjJHe/MZUDHuyieg+FXkGqLPGVXE3AN38W83YUcNUZ6K7gO2GqkfJE86zGw=="
 }
