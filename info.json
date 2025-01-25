@@ -11,8 +11,7 @@
   "dependencies": {
     "trem": ">=3.1.0",
     "exptech": ">=1.0.2",
-    "config": ">=1.0.3",
-    "logger": ">=1.0.0"
+    "config": ">=1.0.3"
   },
   "resources": [
     "AGPL-3.0"
