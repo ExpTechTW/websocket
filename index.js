@@ -32,7 +32,7 @@ class Plugin {
     const { TREM, Logger, info, utils, MixinManager } = this.#ctx;
 
     const { CustomLogger } =
-      require("./src/utils/logger").createCustomLogger(Logger);
+      require("../logger/logger").createCustomLogger(Logger);
     this.logger = new CustomLogger("websocket");
 
     const defaultDir = utils.path.join(info.pluginDir, "./websocket/resource/default.yml");
@@ -48,7 +48,7 @@ class Plugin {
     this.exptech_config = this.#exptech_config.getConfig();
 
     const server = require("./src/server");
-    this.#server = new server(this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
+    this.#server = new server(this.logger, this.config.server, this.config, this.#exptech_config, TREM, MixinManager);
   }
 }
 

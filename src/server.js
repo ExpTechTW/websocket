@@ -1,15 +1,13 @@
 const WebSocket = require("../node_modules/ws/index");
 
-const logger = require("./utils/logger");
-
 class Server {
   static instance;
 
-  constructor(urls, config, exptech_config, TREM, MixinManager) {
+  constructor(logger, urls, config, exptech_config, TREM, MixinManager) {
     if (Server.instance)
       return Server.instance;
 
-
+    this.logger = logger;
     this.urls = urls;
     this.ws = null;
     this.reconnect = true;
@@ -26,7 +24,7 @@ class Server {
     //   }, 0);
     // });
 
-    let rts = null, eew = null, intensity = null, lpgm = null, tsunami = null, report = null, rtw = null;
+    const rts = null, eew = null, intensity = null, lpgm = null, tsunami = null, report = null, rtw = null;
     this.data = { rts, eew, intensity, lpgm, tsunami, report, rtw };
 
     this.wsConfig = {
@@ -39,11 +37,11 @@ class Server {
     this.ws_time = 0;
 
     setInterval(() => {
-      if (this.ws_gg) {
+      if (this.ws_gg)
         this.connect();
-      } else if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0)) {
+      else if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0))
         this.connect();
-      }
+
     }, 3000);
 
     setInterval(async () => {
@@ -64,26 +62,26 @@ class Server {
     this.ws = null;
     const url = `wss://${this.urls[Math.floor(Math.random() * this.urls.length)]}/websocket`;
     this.ws = new WebSocket(url);
-    logger.info("websocket connecting to -> ", url);
+    this.logger.info("websocket connecting to -> ", url);
     this.ws_event();
   }
 
   ws_event() {
     this.ws.onclose = () => {
       this.ws_gg = true;
-      logger.warn("WebSocket close");
+      this.logger.warn("WebSocket close");
 
       // setTimeout(this.connect, 3000);
     };
 
     this.ws.onerror = (error) => {
       this.ws_gg = true;
-      logger.error("WebSocket error:", error);
+      this.logger.error("WebSocket error:", error);
     };
 
     this.ws.onopen = () => {
       this.ws_gg = false;
-      logger.info("WebSocket open");
+      this.logger.info("WebSocket open");
 
       this.send(this.wsConfig);
     };
@@ -99,17 +97,23 @@ class Server {
         case "info":{
           if (json.data.code == 401) {
             this.reconnect = false;
-            logger.info("WebSocket close -> 401");
+            this.logger.info("WebSocket close -> 401");
             this.ws.close();
           } else if (json.data.code == 200) {
             this.ws_time = Date.now();
             if (!this.info_get) {
               this.info_get = true;
-              logger.info("info:", json.data);
+              this.logger.info("info:", json.data);
+
+              if (json.data.list.includes("trem.eew")) {
+                const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
+                if (eewSource.includes("trem")) this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter(author => author != "cwa");
+                this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
+              }
             }
-          } else if (json.data.code == 400) {
+          } else if (json.data.code == 400)
             this.send(this.wsConfig);
-          }
+
           break;
         }
         case "data":{
@@ -120,9 +124,9 @@ class Server {
               this.data.rts = json.data.data;
               if (this.TREM.variable.play_mode === 1) {
                 this.TREM.variable.data.rts = this.data.rts;
-                this.TREM.variable.events.emit('DataRts', {
-                  info: { type: this.TREM.variable.play_mode },
-                  data: this.data.rts,
+                this.TREM.variable.events.emit("DataRts", {
+                  info : { type: this.TREM.variable.play_mode },
+                  data : this.data.rts,
                 });
                 this.TREM.variable.cache.last_data_time = this.ws_time;
                 if (this.data.rts.int.length == 0) {
@@ -133,31 +137,31 @@ class Server {
               }
               break;
             case "tsunami":
-							this.data.tsunami = json.data;
-							// break;
-						case "eew":
-              logger.info("data eew:", json.data);
-							this.data.eew = json.data;
+              this.data.tsunami = json.data;
+              break;
+            case "eew":
+              this.logger.info("data eew:", json.data);
+              this.data.eew = json.data;
               if (this.TREM.variable.play_mode === 1) this.processEEWData(this.data.eew);
-							break;
-						case "intensity":
-              logger.info("data intensity:", json.data);
-							this.data.intensity = json.data;
+              break;
+            case "intensity":
+              this.logger.info("data intensity:", json.data);
+              this.data.intensity = json.data;
               if (this.TREM.variable.play_mode === 1) this.processIntensityData(this.data.intensity);
-							break;
-						case "report":
-							this.data.report = json.data;
-							// break;
-						case "rtw":
-							this.data.rtw = json.data;
-							break;
+              break;
+            case "report":
+              this.data.report = json.data;
+              break;
+            case "rtw":
+              this.data.rtw = json.data;
+              break;
             case "lpgm":
-              logger.info("data lpgm:", json.data);
+              this.logger.info("data lpgm:", json.data);
               this.data.lpgm = json.data;
               if (this.TREM.variable.play_mode === 1) this.processLpgmData(this.data.lpgm);
               break;
             default:
-              logger.info("data:", json.data);
+              this.logger.info("data:", json.data);
           }
           break;
         }
@@ -166,7 +170,7 @@ class Server {
           break;
         }
         default:{
-          logger.info("json:", json);
+          this.logger.info("json:", json);
         }
       }
     };
@@ -190,17 +194,16 @@ class Server {
     return {
       execute: async () => {
         try {
-          const response = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+          const response = await fetch(url, { signal: controller.signal, cache: "no-cache" });
           clearTimeout(timeoutId);
           return response;
-        }
-        catch (error) {
-          if (error.name === 'AbortError') {
-            logger.error(`[utils/fetch.js] -> time out | ${url}`);
-          }
-          else {
-            logger.error(`[utils/fetch.js] -> fetch error: ${url} | ${error.message}`);
-          }
+        } catch (error) {
+          if (error.name === "AbortError")
+            this.logger.error(`[utils/fetch.js] -> time out | ${url}`);
+
+          else
+            this.logger.error(`[utils/fetch.js] -> fetch error: ${url} | ${error.message}`);
+
           return null;
         }
       },
@@ -219,7 +222,7 @@ class Server {
       : this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
 
     const eew_req = this.getFetchData(
-      `https://${url}/api/v2/eq/eew${(time) ? `/${time}` : ''}`,
+      `https://${url}/api/v2/eq/eew${(time) ? `/${time}` : ""}`,
       this.TREM.constant.HTTP_TIMEOUT.EEW,
     );
 
@@ -228,7 +231,7 @@ class Server {
 
     if (shouldFetchIntensity) {
       intensity_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/intensity${(time) ? `/${time}` : ''}`,
+        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/intensity${(time) ? `/${time}` : ""}`,
         this.TREM.constant.HTTP_TIMEOUT.INTENSITY,
       );
       activeReqs.push(intensity_req);
@@ -236,7 +239,7 @@ class Server {
 
     if (shouldFetchLPGM) {
       lpgm_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/lpgm${(time) ? `/${time}` : ''}`,
+        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/lpgm${(time) ? `/${time}` : ""}`,
         this.TREM.constant.HTTP_TIMEOUT.LPGM,
       );
       activeReqs.push(lpgm_req);
@@ -249,21 +252,20 @@ class Server {
 
       let eew = null, intensity = null, lpgm = null;
 
-      if (responses[0]?.ok) {
+      if (responses[0]?.ok)
         eew = await responses[0].json();
-      }
 
-      if (shouldFetchIntensity && responses[1]?.ok) {
+
+      if (shouldFetchIntensity && responses[1]?.ok)
         intensity = await responses[1].json();
-      }
 
-      if (shouldFetchLPGM && responses[responses.length - 1]?.ok) {
+
+      if (shouldFetchLPGM && responses[responses.length - 1]?.ok)
         lpgm = await responses[responses.length - 1].json();
-      }
+
 
       return { eew, intensity, lpgm };
-    }
-    finally {
+    } finally {
       this.activeRequests = this.activeRequests.filter((req) => !activeReqs.includes(req));
     }
   }
@@ -272,9 +274,9 @@ class Server {
     if (this.TREM.variable.play_mode === 1) {
       // realtime (websocket)
       const localNow_ws = Date.now();
-      if (localNow_ws - this.lastFetchTime < 1000) {
+      if (localNow_ws - this.lastFetchTime < 1000)
         return;
-      }
+
       this.lastFetchTime = localNow_ws;
 
       const data = await this.http(null);
@@ -289,35 +291,35 @@ class Server {
       //   });
       // }
 
-      if (data.eew) {
+      if (data.eew)
         this.processEEWData(data.eew);
-      }
-      else {
+
+      else
         this.processEEWData();
-      }
 
-      if (data.intensity) {
+
+      if (data.intensity)
         this.processIntensityData(data.intensity);
-      }
-      else {
-        this.processIntensityData();
-      }
 
-      if (data.lpgm) {
+      else
+        this.processIntensityData();
+
+
+      if (data.lpgm)
         this.processLpgmData(data.lpgm);
-      }
-      else {
+
+      else
         this.processLpgmData();
-      }
+
 
       // if (this.data.rts) {
       //   this.TREM.variable.cache.last_data_time = localNow_ws;
       // }
 
       return null;
-    } else {
+    } else
       this.abortAll();
-    }
+
   }
 
   processEEWData(data = {}) {
@@ -334,9 +336,9 @@ class Server {
         ),
       )
       .forEach((data) => {
-        this.TREM.variable.events.emit('EewEnd', {
-          info: { type: this.TREM.variable.play_mode },
-          data: { ...data, EewEnd: true },
+        this.TREM.variable.events.emit("EewEnd", {
+          info : { type: this.TREM.variable.play_mode },
+          data : { ...data, EewEnd: true },
         });
       });
 
@@ -347,9 +349,9 @@ class Server {
       && !(item.status === 3 && currentTime - item.status3Time > STATUS_3_TIMEOUT),
     );
 
-    if (!data.eq?.time || currentTime - data.eq.time > EXPIRY_TIME || data.EewEnd) {
+    if (!data.eq?.time || currentTime - data.eq.time > EXPIRY_TIME || data.EewEnd)
       return;
-    }
+
 
     const existingIndex = this.TREM.variable.data.eew.findIndex((item) => item.id == data.id);
     const eventData = {
@@ -357,41 +359,41 @@ class Server {
       data,
     };
 
-    if (existingIndex == -1) {
+    if (existingIndex == -1)
       if (!this.TREM.variable.cache.eew_last[data.id]) {
         if (this.TREM.constant.EEW_AUTHOR.includes(data.author)) {
           this.TREM.variable.cache.eew_last[data.id] = {
-            last_time: currentTime,
-            serial: 1,
+            last_time : currentTime,
+            serial    : 1,
           };
           this.TREM.variable.data.eew.push(data);
-          this.TREM.variable.events.emit('EewRelease', eventData);
+          this.TREM.variable.events.emit("EewRelease", eventData);
         }
         return;
       }
-    }
+
 
     if (this.TREM.variable.cache.eew_last[data.id] && this.TREM.variable.cache.eew_last[data.id].serial < data.serial) {
       this.TREM.variable.cache.eew_last[data.id].serial = data.serial;
 
-      if (data.status === 3) {
+      if (data.status === 3)
         data.status3Time = currentTime;
-      }
 
-      this.TREM.variable.events.emit('EewUpdate', eventData);
 
-      if (!this.TREM.variable.data.eew[existingIndex].status && data.status == 1) {
-        this.TREM.variable.events.emit('EewAlert', eventData);
-      }
+      this.TREM.variable.events.emit("EewUpdate", eventData);
+
+      if (!this.TREM.variable.data.eew[existingIndex].status && data.status == 1)
+        this.TREM.variable.events.emit("EewAlert", eventData);
+
 
       this.TREM.variable.data.eew[existingIndex] = data;
     }
 
-    this.cleanupCache('eew_last');
+    this.cleanupCache("eew_last");
 
-    this.TREM.variable.events.emit('DataEew', {
-      info: { type: this.TREM.variable.play_mode },
-      data: this.TREM.variable.data.eew,
+    this.TREM.variable.events.emit("DataEew", {
+      info : { type: this.TREM.variable.play_mode },
+      data : this.TREM.variable.data.eew,
     });
   }
 
@@ -405,21 +407,21 @@ class Server {
         && (currentTime - item.id > EXPIRY_TIME || item.IntensityEnd),
       )
       .forEach((data) => {
-        this.TREM.variable.events.emit('IntensityEnd', {
-          info: { type: this.TREM.variable.play_mode },
-          data: { ...data, IntensityEnd: true },
+        this.TREM.variable.events.emit("IntensityEnd", {
+          info : { type: this.TREM.variable.play_mode },
+          data : { ...data, IntensityEnd: true },
         });
       });
 
-      this.TREM.variable.data.intensity = this.TREM.variable.data.intensity.filter((item) =>
+    this.TREM.variable.data.intensity = this.TREM.variable.data.intensity.filter((item) =>
       item.id
       && currentTime - item.id <= EXPIRY_TIME
       && !item.IntensityEnd,
     );
 
-    if (!data.id || currentTime - data.id > EXPIRY_TIME || data.IntensityEnd) {
+    if (!data.id || currentTime - data.id > EXPIRY_TIME || data.IntensityEnd)
       return;
-    }
+
 
     const existingIndex = this.TREM.variable.data.intensity.findIndex((item) => item.id == data.id);
     const eventData = {
@@ -427,31 +429,31 @@ class Server {
       data,
     };
 
-    if (existingIndex == -1) {
+    if (existingIndex == -1)
       if (!this.TREM.variable.cache.intensity_last[data.id]) {
         this.TREM.variable.cache.intensity_last[data.id] = {
-          last_time: currentTime,
-          serial: 1,
+          last_time : currentTime,
+          serial    : 1,
         };
         this.TREM.variable.data.intensity.push(data);
-        this.TREM.variable.events.emit('IntensityRelease', eventData);
+        this.TREM.variable.events.emit("IntensityRelease", eventData);
         return;
       }
-    }
+
 
     if (this.TREM.variable.cache.intensity_last[data.id] && this.TREM.variable.cache.intensity_last[data.id].serial < data.serial) {
       this.TREM.variable.cache.intensity_last[data.id].serial = data.serial;
       if (this.isAreaDifferent(data.area, this.TREM.variable.data.intensity[existingIndex].area)) {
-        this.TREM.variable.events.emit('IntensityUpdate', eventData);
+        this.TREM.variable.events.emit("IntensityUpdate", eventData);
         this.TREM.variable.data.intensity[existingIndex] = data;
       }
     }
 
-    this.cleanupCache('intensity_last');
+    this.cleanupCache("intensity_last");
 
-    this.TREM.variable.events.emit('DataIntensity', {
-      info: { type: this.TREM.variable.play_mode },
-      data: this.TREM.variable.data.intensity,
+    this.TREM.variable.events.emit("DataIntensity", {
+      info : { type: this.TREM.variable.play_mode },
+      data : this.TREM.variable.data.intensity,
     });
   }
 
@@ -465,9 +467,9 @@ class Server {
         && (currentTime - item.time > EXPIRY_TIME || item.LpgmEnd),
       )
       .forEach((data) => {
-        this.TREM.variable.events.emit('LpgmEnd', {
-          info: { type: this.TREM.variable.play_mode },
-          data: { ...data, LpgmEnd: true },
+        this.TREM.variable.events.emit("LpgmEnd", {
+          info : { type: this.TREM.variable.play_mode },
+          data : { ...data, LpgmEnd: true },
         });
       });
 
@@ -477,9 +479,9 @@ class Server {
       && !item.LpgmEnd,
     );
 
-    if (!data.id || data.LpgmEnd) {
+    if (!data.id || data.LpgmEnd)
       return;
-    }
+
 
     const existingIndex = this.TREM.variable.data.lpgm.findIndex((item) => item.id == data.id);
     const eventData = {
@@ -491,12 +493,12 @@ class Server {
       data.id = Number(data.id);
       data.time = this.now();
       this.TREM.variable.data.lpgm.push(data);
-      this.TREM.variable.events.emit('LpgmRelease', eventData);
+      this.TREM.variable.events.emit("LpgmRelease", eventData);
     }
 
-    this.TREM.variable.events.emit('DataLpgm', {
-      info: { type: this.TREM.variable.play_mode },
-      data: this.TREM.variable.data.lpgm,
+    this.TREM.variable.events.emit("DataLpgm", {
+      info : { type: this.TREM.variable.play_mode },
+      data : this.TREM.variable.data.lpgm,
     });
   }
 
@@ -504,46 +506,46 @@ class Server {
     const currentTime = this.now();
     Object.keys(this.TREM.variable.cache[cacheKey]).forEach((id) => {
       const item = this.TREM.variable.cache[cacheKey][id];
-      if (currentTime - item.last_time > 600000) {
+      if (currentTime - item.last_time > 600000)
         delete this.TREM.variable.cache[cacheKey][id];
-      }
+
     });
   }
 
   isAreaDifferent(area1, area2) {
-    if (!area1 || !area2) {
+    if (!area1 || !area2)
       return true;
-    }
+
 
     const keys1 = Object.keys(area1);
     const keys2 = Object.keys(area2);
 
-    if (keys1.length !== keys2.length) {
+    if (keys1.length !== keys2.length)
       return true;
-    }
+
 
     return keys1.some((key) => {
       const arr1 = area1[key] || [];
       const arr2 = area2[key] || [];
-      if (arr1.length !== arr2.length) {
+      if (arr1.length !== arr2.length)
         return true;
-      }
+
       return !arr1.every((val) => arr2.includes(val));
     });
   }
 
   now() {
     if (this.TREM.variable.play_mode == 2 || this.TREM.variable.play_mode == 3) {
-      if (!this.TREM.variable.replay.local_time) {
+      if (!this.TREM.variable.replay.local_time)
         this.TREM.variable.replay.local_time = Date.now();
-      }
+
 
       return this.TREM.variable.replay.start_time + (Date.now() - this.TREM.variable.replay.local_time);
     }
 
-    if (!this.TREM.variable.cache.time.syncedTime || !this.TREM.variable.cache.time.lastSync) {
+    if (!this.TREM.variable.cache.time.syncedTime || !this.TREM.variable.cache.time.lastSync)
       return Date.now();
-    }
+
 
     const offset = Date.now() - this.TREM.variable.cache.time.lastSync;
     return this.TREM.variable.cache.time.syncedTime + offset;
