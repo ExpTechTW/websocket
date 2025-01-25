@@ -20,11 +20,6 @@ class Server {
     this.exptech_config = exptech_config;
     this.get_exptech_config = this.exptech_config.getConfig();
     this.TREM = TREM;
-    // this.TREM.variable.events.on('MapLoad', () => {
-    //   setInterval(async () => {
-    //     await this.fetchData();
-    //   }, 0);
-    // });
 
     const rts = null, eew = null, intensity = null, lpgm = null, tsunami = null, report = null, rtw = null;
     this.data = { rts, eew, intensity, lpgm, tsunami, report, rtw };
@@ -42,21 +37,16 @@ class Server {
 
     this.connect();
 
-    setInterval(() => {
-      if (this.ws_gg)
-        this.connect();
-      else if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0))
-        this.connect();
-
-    }, 3000);
-
-    setInterval(async () => {
-      if (this.ws_open) await this.fetchData();
-    }, 1000);
-
-    // MixinManager.inject(TREM.class.DataManager, "fetchData", this.fetchData, "start");
+    this.connect_clock = setInterval(() => this.runCheckconnect, 3000);
 
     Server.instance = this;
+  }
+
+  runCheckconnect() {
+    if (this.ws_gg)
+      this.connect();
+    else if ((Date.now() - this.ws_time > 30_000 && this.ws_time != 0))
+      this.connect();
   }
 
   get_ws_verify_list() {
@@ -69,6 +59,10 @@ class Server {
 
     if (!ws_open) {
       if (this.reconnect) this.reconnect = false;
+      if (this.connect_clock) {
+        clearInterval(this.connect_clock);
+        this.connect_clock = null;
+      }
       this.ws_time = 0;
       this.ws.close();
       this.ws_gg = false;
@@ -77,6 +71,9 @@ class Server {
     } else {
       if (!this.reconnect) this.reconnect = true;
       if (this.info_get) this.info_get = false;
+      if (!this.connect_clock) {
+        this.connect_clock = setInterval(() => this.runCheckconnect, 3000);
+      }
       this.get_exptech_config = this.exptech_config.getConfig();
       this.wsConfig = {
         type    : "start",
@@ -231,13 +228,6 @@ class Server {
     if (this.ws) this.ws.send(JSON.stringify(data));
   }
 
-  abortAll() {
-    if (this.activeRequests.length > 0) {
-      this.activeRequests.forEach((fetcher) => fetcher.controller.abort());
-      this.activeRequests = [];
-    }
-  }
-
   getReportInfo(url, id) {
     const ans = getFetchData(
       `https://${url}/api/v2/eq/report/${id}`,
@@ -271,54 +261,6 @@ class Server {
       },
       controller,
     };
-  }
-
-  async http() {
-    const url = this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
-
-    const eew_req = this.getFetchData(
-      `https://${url}/api/v2/eq/eew`,
-      this.TREM.constant.HTTP_TIMEOUT.EEW,
-    );
-
-    const activeReqs = [eew_req];
-
-    try {
-      const responses = await Promise.all(activeReqs.map((req) => req.execute()));
-
-      let eew = null;
-
-      if (responses[0]?.ok)
-        eew = await responses[0].json();
-
-      return { eew };
-    }
-    finally {
-      this.activeRequests = this.activeRequests.filter((req) => !activeReqs.includes(req));
-    }
-  }
-
-  async fetchData() {
-    if (this.TREM.variable.play_mode === 1) {
-      // realtime (websocket)
-      const localNow_ws = Date.now();
-      if (localNow_ws - this.lastFetchTime < 1000)
-        return;
-
-      this.lastFetchTime = localNow_ws;
-
-      const data = await this.http();
-
-      if (data.eew)
-        this.processEEWData(data.eew);
-
-      else
-        this.processEEWData();
-
-      return null;
-    } else
-      this.abortAll();
-
   }
 
   processEEWData(data = {}) {
