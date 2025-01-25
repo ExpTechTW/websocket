@@ -148,14 +148,13 @@ class Server {
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
-
-            if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);
           }
           break;
         }
         case "data":{
+          if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
               this.ws_time = Date.now();
