@@ -1,18 +1,17 @@
 {
   "name": "websocket",
-  "version": "1.1.1",
+  "version": "1.1.4",
   "description": {
     "zh_tw": "TREM-Lite websocket Plugin"
   },
   "author": [
     "whes1015",
-    "yaycat"
+    "yayacat"
   ],
   "dependencies": {
     "trem": ">=3.1.0",
-    "exptech": ">=1.0.1",
-    "config": ">=1.0.3",
-    "logger": ">=1.0.0"
+    "exptech": ">=1.0.2",
+    "config": ">=1.0.3"
   },
   "resources": [
     "AGPL-3.0"

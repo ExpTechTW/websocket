@@ -2,6 +2,8 @@ const WebSocket = require("../node_modules/ws/index");
 
 class Server {
   static instance;
+  ws_verify_list = [];
+  ws_open = true;
 
   constructor(logger, urls, config, exptech_config, TREM, MixinManager) {
     if (Server.instance)
@@ -33,8 +35,12 @@ class Server {
       key     : this.get_exptech_config.user.token ?? "",
     };
 
-    this.connect();
+    this.ws_verify_list = Server.ws_verify_list;
     this.ws_time = 0;
+    this.activeRequests = [];
+    this.ws_open = Server.ws_open;
+
+    this.connect();
 
     setInterval(() => {
       if (this.ws_gg)
@@ -45,15 +51,41 @@ class Server {
     }, 3000);
 
     setInterval(async () => {
-      await this.fetchData();
-    }, 0);
+      if (this.ws_open) await this.fetchData();
+    }, 1000);
 
     // MixinManager.inject(TREM.class.DataManager, "fetchData", this.fetchData, "start");
 
-    this.requestCounter = 0;
-    this.activeRequests = [];
-
     Server.instance = this;
+  }
+
+  get_ws_verify_list() {
+    return this.ws_verify_list;
+  }
+
+  set_ws_open(ws_open) {
+    // this.logger.info("WebSocket set_ws_open:", ws_open);
+    this.ws_open = ws_open;
+
+    if (!ws_open) {
+      if (this.reconnect) this.reconnect = false;
+      this.ws_time = 0;
+      this.ws.close();
+      this.ws_gg = false;
+      this.ws = null;
+      this.logger.info("WebSocket close -> chenges");
+    } else {
+      if (!this.reconnect) this.reconnect = true;
+      if (this.info_get) this.info_get = false;
+      this.get_exptech_config = this.exptech_config.getConfig();
+      this.wsConfig = {
+        type    : "start",
+        service : this.config.service,
+        key     : this.get_exptech_config.user.token ?? "",
+      };
+      this.connect();
+      this.logger.info("WebSocket open -> chenges");
+    }
   }
 
   connect() {
@@ -99,25 +131,35 @@ class Server {
             this.reconnect = false;
             this.logger.info("WebSocket close -> 401");
             this.ws.close();
+            this.ws = null;
           } else if (json.data.code == 200) {
             this.ws_time = Date.now();
             if (!this.info_get) {
               this.info_get = true;
               this.logger.info("info:", json.data);
-
+              this.ws_verify_list = json.data.list;
               if (json.data.list.includes("trem.eew")) {
-                const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
-                if (eewSource.includes("trem")) this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter(author => author != "cwa");
+                if (this.config.SHOW_BOTH_EEW) {
+                  this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'cwa');
+                  this.TREM.constant.EEW_AUTHOR.push("cwa");
+                  this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'trem');
+                  this.TREM.constant.EEW_AUTHOR.push("trem");
+                } else {
+                  this.TREM.constant.SHOW_TREM_EEW = true;
+                  const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
+                  if (eewSource.includes("trem")) this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter(author => author != "cwa");
+                }
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
             }
-          } else if (json.data.code == 400)
-            this.send(this.wsConfig);
 
+            if (this.TREM.variable.play_mode === 0 && this.ws_open) this.TREM.variable.play_mode = 1;
+          } else if (json.data.code == 400) {
+            this.send(this.wsConfig);
+          }
           break;
         }
         case "data":{
-          if (this.TREM.variable.play_mode === 0) this.TREM.variable.play_mode = 1;
           switch (json.data.type) {
             case "rts":
               this.ws_time = Date.now();
@@ -137,9 +179,10 @@ class Server {
               }
               break;
             case "tsunami":
-              this.data.tsunami = json.data;
-              break;
-            case "eew":
+              this.logger.info("data tsunami:", json.data);
+							this.data.tsunami = json.data;
+							break;
+						case "eew":
               this.logger.info("data eew:", json.data);
               this.data.eew = json.data;
               if (this.TREM.variable.play_mode === 1) this.processEEWData(this.data.eew);
@@ -148,13 +191,21 @@ class Server {
               this.logger.info("data intensity:", json.data);
               this.data.intensity = json.data;
               if (this.TREM.variable.play_mode === 1) this.processIntensityData(this.data.intensity);
-              break;
-            case "report":
-              this.data.report = json.data;
-              break;
-            case "rtw":
-              this.data.rtw = json.data;
-              break;
+							break;
+						case "report":
+              this.logger.info("data report:", json.data);
+							this.data.report = json.data.data;
+              if (this.TREM.variable.play_mode === 1) {
+                const url = this.TREM.constant.URL.API[Math.floor(Math.random() * this.TREM.constant.URL.API.length)];
+                const data = json.data.data;
+                if (data) {
+                  this.TREM.variable.events.emit('ReportRelease', { info: { url }, data });
+                }
+              }
+							break;
+						case "rtw":
+							this.data.rtw = json.data;
+							break;
             case "lpgm":
               this.logger.info("data lpgm:", json.data);
               this.data.lpgm = json.data;
@@ -187,6 +238,17 @@ class Server {
     }
   }
 
+  getReportInfo(url, id) {
+    const ans = getFetchData(
+      `https://${url}/api/v2/eq/report/${id}`,
+      this.TREM.constant.HTTP_TIMEOUT.REPORT,
+    );
+    if (!ans || !ans.ok) {
+      return null;
+    }
+    return ans.json();
+  }
+
   getFetchData(url, timeout = 1000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -211,61 +273,27 @@ class Server {
     };
   }
 
-  async http(time) {
-    time = Math.round(time / 1000);
-    this.requestCounter++;
-    const shouldFetchLPGM = this.requestCounter % 10 === 0;
-    const shouldFetchIntensity = this.requestCounter % 5 === 0;
-
-    const url = (time)
-      ? this.TREM.constant.URL.REPLAY[Math.floor(Math.random() * this.TREM.constant.URL.REPLAY.length)]
-      : this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
+  async http() {
+    const url = this.TREM.constant.URL.LB[Math.floor(Math.random() * this.TREM.constant.URL.LB.length)];
 
     const eew_req = this.getFetchData(
-      `https://${url}/api/v2/eq/eew${(time) ? `/${time}` : ""}`,
+      `https://${url}/api/v2/eq/eew`,
       this.TREM.constant.HTTP_TIMEOUT.EEW,
     );
 
     const activeReqs = [eew_req];
-    let intensity_req, lpgm_req;
-
-    if (shouldFetchIntensity) {
-      intensity_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/intensity${(time) ? `/${time}` : ""}`,
-        this.TREM.constant.HTTP_TIMEOUT.INTENSITY,
-      );
-      activeReqs.push(intensity_req);
-    }
-
-    if (shouldFetchLPGM) {
-      lpgm_req = this.getFetchData(
-        `https://${this.TREM.constant.URL.API[1]}/api/v2/trem/lpgm${(time) ? `/${time}` : ""}`,
-        this.TREM.constant.HTTP_TIMEOUT.LPGM,
-      );
-      activeReqs.push(lpgm_req);
-    }
-
-    this.activeRequests.push(...activeReqs);
 
     try {
       const responses = await Promise.all(activeReqs.map((req) => req.execute()));
 
-      let eew = null, intensity = null, lpgm = null;
+      let eew = null;
 
       if (responses[0]?.ok)
         eew = await responses[0].json();
 
-
-      if (shouldFetchIntensity && responses[1]?.ok)
-        intensity = await responses[1].json();
-
-
-      if (shouldFetchLPGM && responses[responses.length - 1]?.ok)
-        lpgm = await responses[responses.length - 1].json();
-
-
-      return { eew, intensity, lpgm };
-    } finally {
+      return { eew };
+    }
+    finally {
       this.activeRequests = this.activeRequests.filter((req) => !activeReqs.includes(req));
     }
   }
@@ -279,42 +307,13 @@ class Server {
 
       this.lastFetchTime = localNow_ws;
 
-      const data = await this.http(null);
-
-      // if (!this.TREM.variable.data.rts
-      //   || (!this.data.rts && ((localNow_ws - this.TREM.variable.cache.last_data_time) > this.TREM.constant.LAST_DATA_TIMEOUT_ERROR))
-      //   || this.TREM.variable.data.rts.time < (this.data.rts?.time ?? 0)) {
-      //   this.TREM.variable.data.rts = this.data.rts;
-      //   this.TREM.variable.events.emit('DataRts', {
-      //     info: { type: this.TREM.variable.play_mode },
-      //     data: this.data.rts,
-      //   });
-      // }
+      const data = await this.http();
 
       if (data.eew)
         this.processEEWData(data.eew);
 
       else
         this.processEEWData();
-
-
-      if (data.intensity)
-        this.processIntensityData(data.intensity);
-
-      else
-        this.processIntensityData();
-
-
-      if (data.lpgm)
-        this.processLpgmData(data.lpgm);
-
-      else
-        this.processLpgmData();
-
-
-      // if (this.data.rts) {
-      //   this.TREM.variable.cache.last_data_time = localNow_ws;
-      // }
 
       return null;
     } else
