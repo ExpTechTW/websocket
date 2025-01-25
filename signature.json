@@ -1,9 +1,9 @@
 {
-  "timestamp": 1736899464139,
-  "version": "1.0.5",
+  "timestamp": 1737770328843,
+  "version": "1.1.1",
   "fileHashes": {
-    "index.js": "de29b2048711c7d5df04ba34d4a26a407c01239a45329f5795e2ef91c421eb52",
-    "info.json": "a6201662474225116cea1a748ab2fd0c21fc07d05a249f5f55d42c824adc94be",
+    "index.js": "bd8af97199a1c3e415243e1fbd78e077d4cd804faf3ecaf88d1b0f5c8b51c785",
+    "info.json": "a73b89d39d17600fe247cdb869d35456b2d4e899febc303b83f659a28179c785",
     "node_modules/ws/browser.js": "010da44addea1d88b2b732540c3f1fd0cbcb28926b96623d4c64222e0ead2d0e",
     "node_modules/ws/index.js": "70a117e957f85622a6fe2be39afb9597489965fe3fe6ebefd84adb8f0d9d114a",
     "node_modules/ws/lib/buffer-util.js": "8b0a45739132f82e25ea13163780abf547ccfe989267f3eb7abb475beec92da3",
@@ -21,8 +21,8 @@
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
     "resource/default.yml": "a7581ae3229374647fb801e3b98edf4eca5e65085e1ccd00817ff46dd70c13ce",
-    "src/server.js": "ef119b6d455170a7d713e63008dc9dbbed301ec4c597738ce24aa115841ab437",
-    "src/utils/logger.js": "3c7867a1d32bb13bcdb8181e77ba2d06c6a8eb9028dc79091f07b7626c53c8d8"
+    "src/server.js": "71b4ca97f6ea646228e24ed93564bcae54577c489db19ea1516cfef802937e4e"
   },
-  "signature": "oxRJmtfQs4cKBWj2CURQb0Zj+rQpIj6JC9HDNBNpHTG4N7L1B+siVHQP1pNbf73NE86hCNUGjs8ndw3V7B0NtRRmjYSQc1Z6ARn4NEgKe4y4azIf65dJVxLohzEZin6/B63hsp5HGnuK3TX1ScxSE6FfOjl8raaRJsy0fCmEcRUQX5h1t6bXZHLys+Laj/wcjT7u38b4rPiz1qztIYciU0SRrfJf4dmkATWaY9oZxTi0/Leum1qJA6tyXR+vabkhuFmdlZ6xlqxs4GR3WDoCeO7NfKXVaFVMPp57IB5M2EPYELN60xSpyvTiiqLj8NDxhg528PXg4fh7KP0CD+b4Wg=="
+  "signature": "S6b1E8WNd+GPsIjkKidfYRqeBgF3CPul3UKHWXFAWjcraF1S/Ck/r3UTKUHOnYHFO81s6u152osOAKpcMvNEIUjaMrWtxabmA9nse4yZBAW/Eu5VBQS1jsuyCHfYf/+dKzMoHUDB9ogZdjtq3+ZMvHofH326XKBAFxZJNVvySIgsSPb7xs9kNx/4SP/3R3WGy0XkcC68n4eWbUyPnbMSLHZ7q9EEHzggZuapZpT9ijS+MrjMJ0OU1VtF94MCKKhUS6lfhydEMgwtcumkYKCu8uh23Yh71KQiRZGMOgT38OLcvsWxFGlBUB7i4yL6hrtF637T0inVKhR+Nct9RmzNJQ==",
+  "keyId": "official"
 }
