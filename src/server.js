@@ -34,7 +34,7 @@ class Server {
 
     this.connect();
 
-    this.connect_clock = setInterval(() => this.runCheckconnect, 3000);
+    this.connect_clock = setInterval(() => this.runCheckconnect(), 3000);
 
     Server.instance = this;
   }
@@ -66,7 +66,7 @@ class Server {
       if (!this.reconnect) this.reconnect = true;
       if (this.info_get) this.info_get = false;
       if (!this.connect_clock) {
-        this.connect_clock = setInterval(() => this.runCheckconnect, 3000);
+        this.connect_clock = setInterval(() => this.runCheckconnect(), 3000);
       }
       this.get_exptech_config = this.exptech_config.getConfig();
       this.wsConfig = {
@@ -92,6 +92,7 @@ class Server {
   ws_event() {
     this.ws.onclose = () => {
       this.ws_gg = true;
+      this.logger.warn(this.connect_clock);
       this.logger.warn("WebSocket close");
 
       // setTimeout(this.connect, 3000);
@@ -135,6 +136,7 @@ class Server {
                   this.TREM.constant.EEW_AUTHOR.push("cwa");
                   this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'trem');
                   this.TREM.constant.EEW_AUTHOR.push("trem");
+                  this.TREM.constant.SHOW_TREM_EEW = true;
                 } else {
                   this.TREM.constant.SHOW_TREM_EEW = true;
                   const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
@@ -142,7 +144,11 @@ class Server {
                 }
                 this.logger.info("EEW_AUTHOR:", this.TREM.constant.EEW_AUTHOR);
               }
+            }
+            if (this.TREM.variable.play_mode != 2) {
               this.TREM.variable.play_mode = 1;
+              const button = document.querySelector("#websocket");
+              button.title = "WebSocket 切換到 HTTP";
             }
           } else if (json.data.code == 400) {
             this.send(this.wsConfig);

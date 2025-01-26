@@ -1,9 +1,9 @@
 {
-  "timestamp": 1737798836846,
-  "version": "1.1.4",
+  "timestamp": 1737926662547,
+  "version": "1.1.5",
   "fileHashes": {
-    "index.js": "614ebe0a794c81c098598a5d5c229904be4232459fc5cf4ff6389bdbcc77928a",
-    "info.json": "f69766d122b09a560bd32ed68c8135b1e8c548d35c0a5f5e45ea3baf079015e4",
+    "index.js": "c96358a35eb421673485ff7d9d6b792a8bbafb679e2b93eff6b57cc2518cdf92",
+    "info.json": "230848dfdff6c55a0602bfe7c4791b0278ac0cd8378e47d5df51b3420f9ee3a6",
     "node_modules/ws/browser.js": "010da44addea1d88b2b732540c3f1fd0cbcb28926b96623d4c64222e0ead2d0e",
     "node_modules/ws/index.js": "70a117e957f85622a6fe2be39afb9597489965fe3fe6ebefd84adb8f0d9d114a",
     "node_modules/ws/lib/buffer-util.js": "8b0a45739132f82e25ea13163780abf547ccfe989267f3eb7abb475beec92da3",
@@ -21,8 +21,9 @@
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
     "resource/default.yml": "38136244b84fad33c8f38bfa96693c9fb573fa79e360525dc71e8faff1e0a0bf",
-    "src/server.js": "d250081c7102fd3e6fd619d6c2dc13bbd491ee8870a4de331d393b1e725444d4",
+    "src/server.js": "a54f4c9c606f4294d67bc70a4e24592bdbe49f6a075dea26d1b0b2b808f5e316",
     "src/utils/logger.js": "3c7867a1d32bb13bcdb8181e77ba2d06c6a8eb9028dc79091f07b7626c53c8d8"
   },
-  "signature": "x8ut6iXjxWl6820CPWySOwYmpQK+/sWfEs6JufQqQw2F7Kg/VIYriIoHyS1/3QIh6g/mAFyT81/CwywQ2sWkOJ3elcujTQirLPgBgDqjE0M1Hpk5TG6doF1INXKx9rdLHnfaJXkZMuydXe6Wjscro6rQUfzCdEzlV1vTeG92X22wEdrB0VRO4BQZ75ixSpTO+T7dbOcDAh8BsZYzTksFgn87ZWJMAL1PUA4vfqkPslIBQgjKMyuVjy9hdRhR/sfFktrktswrDm2VCZuZwEKMeMPMDjmw/kSTW+VyR44ZFTReiaG0l5hnfux14mZXqIsXMD/F9yVrR7+5M+8PfH3tUg=="
+  "signature": "bafy9PuqJNCXxNgKAEe6dl36vmpntuMxCVzFx+FnHOml2L3iqOO+w3frfXtWhppB5bt3UyYkxCjKkCdJzf3cJldQnWKoEEwq/vC7iF813l9drr5fnyAwLdUsaxHw35lo0B/uAQ8dT+TMLvTQ4k0ZO7oKR1UwUZlgllHBpWXZEHZUMEKXqhS8Z1oYlUVPRoiJzSxGn4X+sLJmehVONX5aqdD/IxQKhA6ktdOz/61yv0I6ZdWg0uV21g57SHHB0FJm8zrP4SdTKRrE0lRbHJcouPEJyWq+XrpjzAv9rRtB8rsDXxg94cM8n6ouG1xRWU7VFG3/WOGjHmqGjU13MtBG8A==",
+  "keyId": "official"
 }
