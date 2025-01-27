@@ -1,9 +1,9 @@
 {
-  "timestamp": 1737926662547,
-  "version": "1.1.5",
+  "timestamp": 1737927434426,
+  "version": "1.1.6",
   "fileHashes": {
     "index.js": "c96358a35eb421673485ff7d9d6b792a8bbafb679e2b93eff6b57cc2518cdf92",
-    "info.json": "230848dfdff6c55a0602bfe7c4791b0278ac0cd8378e47d5df51b3420f9ee3a6",
+    "info.json": "a83f5d1ff1756af73fd7cc7cc0d8bd0b8c21b8f67c72ea25846606e9904fc9d2",
     "node_modules/ws/browser.js": "010da44addea1d88b2b732540c3f1fd0cbcb28926b96623d4c64222e0ead2d0e",
     "node_modules/ws/index.js": "70a117e957f85622a6fe2be39afb9597489965fe3fe6ebefd84adb8f0d9d114a",
     "node_modules/ws/lib/buffer-util.js": "8b0a45739132f82e25ea13163780abf547ccfe989267f3eb7abb475beec92da3",
@@ -21,9 +21,9 @@
     "node_modules/ws/lib/websocket.js": "54d9109c61ed004733718717d8cc9ffa02ec92c73f6852677a8814e847df6bfc",
     "node_modules/ws/wrapper.mjs": "e37bddaf6d40a3b2ee107906f792cc5117e543cba776fa25f7aeeb3908637f7c",
     "resource/default.yml": "38136244b84fad33c8f38bfa96693c9fb573fa79e360525dc71e8faff1e0a0bf",
-    "src/server.js": "a54f4c9c606f4294d67bc70a4e24592bdbe49f6a075dea26d1b0b2b808f5e316",
+    "src/server.js": "88d1a7e5b7766f38408ce6acc3673b7d5bf2ee212ae34389222dd40a0bd2fde8",
     "src/utils/logger.js": "3c7867a1d32bb13bcdb8181e77ba2d06c6a8eb9028dc79091f07b7626c53c8d8"
   },
-  "signature": "bafy9PuqJNCXxNgKAEe6dl36vmpntuMxCVzFx+FnHOml2L3iqOO+w3frfXtWhppB5bt3UyYkxCjKkCdJzf3cJldQnWKoEEwq/vC7iF813l9drr5fnyAwLdUsaxHw35lo0B/uAQ8dT+TMLvTQ4k0ZO7oKR1UwUZlgllHBpWXZEHZUMEKXqhS8Z1oYlUVPRoiJzSxGn4X+sLJmehVONX5aqdD/IxQKhA6ktdOz/61yv0I6ZdWg0uV21g57SHHB0FJm8zrP4SdTKRrE0lRbHJcouPEJyWq+XrpjzAv9rRtB8rsDXxg94cM8n6ouG1xRWU7VFG3/WOGjHmqGjU13MtBG8A==",
+  "signature": "YQtrZuksotI+P0k7NPCu5urXzBiSbe9vb4o/lbvS2zlYmS8lO1+JN4k8lb/75U6UkvhRTyq9d9TtiWYxttvfzYEOG85uWLwciIaBG86EXNAil4k5NriRPI4hpZPHftyagaklueNwO5m0yW/hkprW+pILKPIZd9CBjFl7DBCGyjFW/SvgYKsOFaS8qrLnoCaq6apLos9EsOcJidrK+h7wP+1o/6W09CC60sqEIrCbsMLPJkldLfdc84kVh7tYSaFt2JVfpKbVsCV0xJfhYboGC5WrXbfnhLauKI25jQAK+jTWnGeZG4iF2lLpkU9jATbFbx3t01s7vBqq1wb2jrnJFg==",
   "keyId": "official"
 }

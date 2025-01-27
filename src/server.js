@@ -137,6 +137,10 @@ class Server {
                   this.TREM.constant.EEW_AUTHOR = this.TREM.constant.EEW_AUTHOR.filter((author) => author != 'trem');
                   this.TREM.constant.EEW_AUTHOR.push("trem");
                   this.TREM.constant.SHOW_TREM_EEW = true;
+                  localStorage.setItem(
+                    "eew-source-plugin",
+                    JSON.stringify(this.TREM.constant.EEW_AUTHOR),
+                  );
                 } else {
                   this.TREM.constant.SHOW_TREM_EEW = true;
                   const eewSource = JSON.parse(localStorage.getItem("eew-source-plugin")) || [];
